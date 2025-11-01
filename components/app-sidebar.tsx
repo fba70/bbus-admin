@@ -24,7 +24,7 @@ import { Logout } from "./logout"
 import { ModeSwitcher } from "./mode-switcher"
 import { getOrganizations } from "@/server/organizations"
 
-const items = [
+export const items = [
   {
     title: "Home",
     url: "/",
@@ -60,19 +60,14 @@ const items = [
     url: "/reports",
     icon: FileSpreadsheet,
   },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
 ]
 
 export async function AppSidebar() {
   const organizations = await getOrganizations()
 
   return (
-    <Sidebar>
-      <SidebarContent>
+    <Sidebar className="flex flex-col h-screen">
+      <SidebarContent className="flex-1">
         <SidebarHeader className="flex flex-col items-center justify-center gap-2">
           <Image
             src="/Logo_BBUS.png"
@@ -101,20 +96,20 @@ export async function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href={"/settings"}>
-                  <Settings size={24} className="mr-2" />
-                  <span className="text-lg">Settings</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter className="mt-auto">
+        <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <ModeSwitcher />
+              <a href={"/settings"}>
+                <Settings size={24} className="mr-2" />
+                <span className="text-lg">Settings</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <ModeSwitcher className="flex items-center justify-start" />
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
@@ -122,8 +117,10 @@ export async function AppSidebar() {
               <Logout />
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarFooter>
-      </SidebarContent>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }
+
+// <ModeSwitcher className="flex items-center justify-start" />

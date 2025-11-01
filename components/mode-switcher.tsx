@@ -7,7 +7,7 @@ import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
 
-export function ModeSwitcher() {
+export function ModeSwitcher({ className }: { className?: string }) {
   const { setTheme, resolvedTheme } = useTheme()
 
   const toggleTheme = React.useCallback(() => {
@@ -17,12 +17,12 @@ export function ModeSwitcher() {
   return (
     <Button
       variant="ghost"
-      className="group/toggle size-8 px-0"
+      className={`group/toggle size-8 px-0 ${className}`}
       onClick={toggleTheme}
     >
-      <SunIcon className="hidden [html.dark_&]:block" />
-      <MoonIcon className="hidden [html.light_&]:block" />
-      <span className="text-lg">Toggle theme</span>
+      <SunIcon className="hidden [html.dark_&]:block mr-1" />
+      <MoonIcon className="hidden [html.light_&]:block mr-1" />
+      <span className="text-lg">Theme</span>
     </Button>
   )
 }

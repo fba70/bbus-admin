@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import {
   Route,
   Bus,
@@ -22,12 +25,13 @@ import {
 } from "@/components/ui/sidebar"
 import { Logout } from "./logout"
 import { ModeSwitcher } from "./mode-switcher"
+import { usePathname } from "next/navigation"
 import { getOrganizations } from "@/server/organizations"
 
 export const items = [
   {
     title: "Home",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
   {
@@ -62,8 +66,26 @@ export const items = [
   },
 ]
 
-export async function AppSidebar() {
-  const organizations = await getOrganizations()
+export function AppSidebar() {
+  const pathname = usePathname()
+
+  const [organization, setOrganization] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Fetch organization data from the server action
+    const fetchOrganization = async () => {
+      try {
+        const organizations = await getOrganizations()
+        setOrganization(organizations[0]?.name || "Unknown Organization")
+      } catch (error) {
+        console.error("Failed to fetch organization data:", error)
+        setOrganization("Error Loading Organization")
+      }
+    }
+
+    fetchOrganization()
+  }, [])
+  // {organizations[0].name}
 
   return (
     <Sidebar className="flex flex-col h-screen">
@@ -76,8 +98,8 @@ export async function AppSidebar() {
             height={70}
             className="rounded-lg dark:invert"
           />
-          <p className="text-base font-bold text-center">
-            {organizations[0].name}
+          <p className="text-2xl font-bold text-center">
+            {organization || "Loading..."}
           </p>
         </SidebarHeader>
         <SidebarGroup>
@@ -86,7 +108,14 @@ export async function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <a
+                      href={item.url}
+                      className={`flex items-center p-2 rounded-md ${
+                        pathname === item.url
+                          ? "bg-gray-200 dark:bg-gray-700 text-blue-600"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                      }`}
+                    >
                       <item.icon size={24} className="mr-2" />
                       <span className="text-lg">{item.title}</span>
                     </a>

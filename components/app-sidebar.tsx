@@ -96,7 +96,7 @@ export function AppSidebar() {
             alt="Business Bus"
             width={252}
             height={70}
-            className="rounded-lg dark:invert"
+            className="rounded-lg dark:bg-gray-200"
           />
           <p className="text-2xl font-bold text-center">
             {organization || "Loading..."}
@@ -126,11 +126,18 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="mt-auto">
+      <SidebarFooter className="mt-auto mb-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <a href={"/settings"}>
+              <a
+                href={"/settings"}
+                className={`flex items-center p-2 rounded-md ${
+                  pathname === "/settings"
+                    ? "bg-gray-200 dark:bg-gray-700 text-blue-600"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+              >
                 <Settings size={24} className="mr-2" />
                 <span className="text-lg">Settings</span>
               </a>

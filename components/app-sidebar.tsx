@@ -64,6 +64,11 @@ export const items = [
     url: "/reports",
     icon: FileSpreadsheet,
   },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
 ]
 
 export function AppSidebar() {
@@ -130,22 +135,22 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
+              <ModeSwitcher className="flex items-center justify-start" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
               <a
                 href={"/settings"}
                 className={`flex items-center p-2 rounded-md ${
-                  pathname === "/settings"
+                  pathname === "/user-settings"
                     ? "bg-gray-200 dark:bg-gray-700 text-blue-600"
                     : "hover:bg-gray-100 dark:hover:bg-gray-800"
                 }`}
               >
                 <Settings size={24} className="mr-2" />
-                <span className="text-lg">Settings</span>
+                <span className="text-lg">User settings</span>
               </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <ModeSwitcher className="flex items-center justify-start" />
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

@@ -30,42 +30,42 @@ import { getOrganizations } from "@/server/organizations"
 
 export const items = [
   {
-    title: "Home",
+    title: "Главная",
     url: "/dashboard",
     icon: Home,
   },
   {
-    title: "Journeys",
+    title: "Поездки",
     url: "/journeys",
     icon: MapPinned,
   },
   {
-    title: "Cards",
+    title: "Карты",
     url: "/cards",
     icon: IdCardLanyard,
   },
   {
-    title: "Buses",
+    title: "Автобусы",
     url: "/buses",
     icon: Bus,
   },
   {
-    title: "Routes",
+    title: "Маршруты",
     url: "/routes",
     icon: Route,
   },
   {
-    title: "Apps",
+    title: "Приложения",
     url: "/apps",
     icon: Smartphone,
   },
   {
-    title: "Reports",
+    title: "Отчеты",
     url: "/reports",
     icon: FileSpreadsheet,
   },
   {
-    title: "Settings",
+    title: "Настройки",
     url: "/settings",
     icon: Settings,
   },
@@ -77,7 +77,6 @@ export function AppSidebar() {
   const [organization, setOrganization] = useState<string | null>(null)
 
   useEffect(() => {
-    // Fetch organization data from the server action
     const fetchOrganization = async () => {
       try {
         const organizations = await getOrganizations()
@@ -149,7 +148,7 @@ export function AppSidebar() {
                 }`}
               >
                 <Settings size={24} className="mr-2" />
-                <span className="text-lg">User settings</span>
+                <span className="text-lg">Пользователь</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

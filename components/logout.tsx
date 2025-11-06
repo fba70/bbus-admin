@@ -16,7 +16,7 @@ export function Logout() {
   return (
     <Button variant="ghost" onClick={handleLogout}>
       <LogOut size={24} className="mr-2" />{" "}
-      <span className="text-lg">Logout</span>
+      <span className="text-lg">Выход</span>
     </Button>
   )
 }

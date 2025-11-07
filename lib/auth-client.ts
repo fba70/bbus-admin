@@ -1,10 +1,12 @@
-import { lastLoginMethodClient, organizationClient } from "better-auth/client/plugins";
-import { createAuthClient } from "better-auth/react";
+import {
+  lastLoginMethodClient,
+  organizationClient,
+} from "better-auth/client/plugins"
+import { createAuthClient } from "better-auth/react"
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 
 export const authClient = createAuthClient({
-    baseURL: "http://localhost:3000",
-    plugins: [
-        organizationClient(),
-        lastLoginMethodClient()
-    ]
-});
+  baseURL: baseUrl,
+  plugins: [organizationClient(), lastLoginMethodClient()],
+})

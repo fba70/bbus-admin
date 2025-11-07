@@ -53,6 +53,8 @@ export function CreateRouteForm({
 }) {
   const [isLoading, setIsLoading] = useState(false)
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,7 +75,7 @@ export function CreateRouteForm({
         ...values,
       }
 
-      const response = await axios.post("/api/routes", payload, {
+      const response = await axios.post(`${baseUrl}/api/routes`, payload, {
         headers: {
           "Content-Type": "application/json",
         },

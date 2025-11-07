@@ -4,7 +4,7 @@ import { db } from "@/db/drizzle"
 import { member, user } from "@/db/schema"
 import { auth } from "@/lib/auth"
 import { eq, inArray, not } from "drizzle-orm"
-import { headers } from "next/headers"
+import { headers, cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
 export const getCurrentUser = async () => {

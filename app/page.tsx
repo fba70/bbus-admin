@@ -10,7 +10,7 @@ export default function Home() {
         alt="Business Bus"
         width={505}
         height={140}
-        className="rounded-lg dark:invert"
+        className="rounded-lg"
       />
 
       <h1 className="text-4xl font-bold">БИЗНЕС БАС</h1>

@@ -150,6 +150,68 @@ export type Route = typeof route.$inferSelect & {
   organization: typeof organization.$inferSelect
 }
 
+export const cardType = pgEnum("card_type", ["NFC", "RFID", "QR_CODE"])
+
+export const cardStatus = pgEnum("card_status", [
+  "ACTIVE",
+  "INACTIVE",
+  "SUSPENDED",
+])
+
+export const accessCard = pgTable("access_card", {
+  id: text("id").primaryKey(),
+  cardId: text("card_id").notNull(),
+  nameOnCard: text("name_on_card"),
+  cardType: cardType("card_type").notNull(),
+  cardStatus: cardStatus("card_status"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+})
+
+export const accessCardRelations = relations(accessCard, ({ one }) => ({
+  organization: one(organization, {
+    fields: [accessCard.organizationId],
+    references: [organization.id],
+  }),
+}))
+
+export type AccessCard = typeof accessCard.$inferSelect & {
+  organization: Organization
+}
+
+export const bus = pgTable("bus", {
+  id: text("id").primaryKey(),
+  busPlateNumber: text("bus_plate_number").notNull(),
+  busDescription: text("bus_description"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  routeId: text("route_id")
+    .notNull()
+    .references(() => route.id, { onDelete: "cascade" }),
+})
+
+export const busRelations = relations(bus, ({ one }) => ({
+  organization: one(organization, {
+    fields: [bus.organizationId],
+    references: [organization.id],
+  }),
+  route: one(route, {
+    fields: [bus.routeId],
+    references: [route.id],
+  }),
+}))
+
+export type Bus = typeof bus.$inferSelect & {
+  organization: Organization
+  route: Route
+}
+
 export const schema = {
   user,
   session,
@@ -159,7 +221,11 @@ export const schema = {
   member,
   invitation,
   route,
+  accessCard,
+  bus,
   organizationRelations,
   memberRelations,
   routeRelations,
+  accessCardRelations,
+  busRelations,
 }

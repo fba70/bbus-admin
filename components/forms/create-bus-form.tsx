@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { useState } from "react"
-import { Loader2, SquarePen } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Loader2 } from "lucide-react"
+import { Bus, Route } from "@/db/schema"
 import {
   Select,
   SelectContent,
@@ -31,37 +32,48 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import axios from "axios"
-import { Route } from "@/db/schema"
-
-const routeModeSchema = z.enum(["REGISTRATION", "AUTHORIZATION"])
 
 const formSchema = z.object({
+  busPlateNumber: z.string().min(6).max(10),
+  busDescription: z.string().min(2).max(1000),
   routeId: z.string().min(2).max(50),
-  routeName: z.string().min(2).max(50),
-  routeDescription: z.string().min(2).max(1000),
-  routeMode: routeModeSchema,
 })
 
-export function EditRouteForm({
+export function CreateBusForm({
   userId,
-  route,
+  organizationId,
   onSuccess,
 }: {
   userId: string
-  route: Route
+  organizationId: string
   onSuccess: () => void
 }) {
   const [isLoading, setIsLoading] = useState(false)
+  const [routes, setRoutes] = useState<Route[]>([])
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+
+  useEffect(() => {
+    async function fetchRoutes() {
+      try {
+        const response = await axios.get(`${baseUrl}/api/routes`, {
+          params: { userId },
+        })
+        setRoutes(response.data)
+      } catch (error) {
+        console.error("Failed to fetch routes", error)
+        toast.error("Failed to load routes")
+      }
+    }
+    fetchRoutes()
+  }, [userId, baseUrl])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      routeId: route.routeId,
-      routeName: route.routeName,
-      routeDescription: route.routeDescription || "",
-      routeMode: route.routeMode || "REGISTRATION",
+      busPlateNumber: "",
+      busDescription: "",
+      routeId: "",
     },
   })
 
@@ -71,23 +83,23 @@ export function EditRouteForm({
 
       const payload = {
         userId,
-        id: route.id,
+        organizationId,
         ...values,
       }
 
-      const response = await axios.patch(`${baseUrl}/api/routes`, payload, {
+      const response = await axios.post(`${baseUrl}/api/buses`, payload, {
         headers: {
           "Content-Type": "application/json",
         },
       })
 
-      const newRoute = response.data
-      console.log("Route created successfully:", newRoute)
+      const newBus = response.data
+      console.log("Bus created successfully:", newBus)
       onSuccess()
-      toast.success("Маршрут успешно изменен")
+      toast.success("Автобус успешно создан")
     } catch (error) {
       console.error(error)
-      toast.error("Ошибка при изменении маршрута")
+      toast.error("Ошибка при создании автобуса")
     } finally {
       setIsLoading(false)
     }
@@ -96,79 +108,59 @@ export function EditRouteForm({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <SquarePen className="" />
-        </Button>
+        <Button>Добавить автобус</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Редактировать маршрут</DialogTitle>
+          <DialogTitle>Создать новый автобус</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
+              name="busPlateNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Номер автобуса</FormLabel>
+                  <FormControl>
+                    <Input placeholder="..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="busDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Описание автобуса</FormLabel>
+                  <FormControl>
+                    <Input placeholder="..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="routeId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Номер маршрута</FormLabel>
+                  <FormLabel>Маршрут автобуса</FormLabel>
                   <FormControl>
-                    <Input placeholder="..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="routeName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Название маршрута</FormLabel>
-                  <FormControl>
-                    <Input placeholder="..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="routeDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Описание маршрута</FormLabel>
-                  <FormControl>
-                    <Input placeholder="..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="routeMode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Режим маршрута</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Выберите режим" />
+                        <SelectValue placeholder="Выберите маршрут" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="REGISTRATION">
-                          Регистрация
-                        </SelectItem>
-                        <SelectItem value="AUTHORIZATION">
-                          Авторизация
-                        </SelectItem>
+                        {routes.map((route) => (
+                          <SelectItem key={route.id} value={route.id}>
+                            {route.routeName}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -185,7 +177,7 @@ export function EditRouteForm({
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Изменить маршрут"
+                "Создать автобус"
               )}
             </Button>
           </form>

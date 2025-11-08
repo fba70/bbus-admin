@@ -32,7 +32,7 @@ import { Route } from "@/db/schema"
 import { toast } from "sonner"
 import axios from "axios"
 import { CreateRouteForm } from "@/components/forms/create-route-form"
-import { EditRouteForm } from "@/components/forms/edit-route-form copy"
+import { EditRouteForm } from "@/components/forms/edit-route-form"
 
 export default function Routes() {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -96,14 +96,30 @@ export default function Routes() {
     },
     {
       accessorKey: "routeId",
-      header: "Номер маршрута",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Номер маршрута
+          <ArrowUpDown />
+        </Button>
+      ),
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue("routeId")}</div>
       ),
     },
     {
       accessorKey: "routeName",
-      header: "Название маршрута",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Название маршрута
+          <ArrowUpDown />
+        </Button>
+      ),
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue("routeName")}</div>
       ),
@@ -142,7 +158,11 @@ export default function Routes() {
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("createdAt")}</div>
+        <div className="capitalize">
+          {new Intl.DateTimeFormat("en-CA").format(
+            new Date(row.getValue("createdAt"))
+          )}
+        </div>
       ),
     },
     {
@@ -157,7 +177,11 @@ export default function Routes() {
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("updatedAt")}</div>
+        <div className="capitalize">
+          {new Intl.DateTimeFormat("en-CA").format(
+            new Date(row.getValue("createdAt"))
+          )}
+        </div>
       ),
     },
     {
@@ -296,28 +320,54 @@ export default function Routes() {
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+        <div className="flex flex-row items-center justify-center gap-8 space-x-2">
+          <div className="flex flex-row items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setPageIndex((prev) => Math.max(prev - 1, 0)) // Decrease pageIndex
+                table.previousPage() // Trigger table's previous page logic
+              }}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setPageIndex((prev) => prev + 1) // Increase pageIndex
+                table.nextPage() // Trigger table's next page logic
+              }}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="pageSize" className="text-sm font-medium">
+              Строк на странице:
+            </label>
+            <select
+              id="pageSize"
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              {[2, 5, 10, 20, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     </div>

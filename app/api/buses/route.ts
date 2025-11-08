@@ -1,6 +1,6 @@
-import { NextResponse, NextRequest } from "next/server"
-import { getRoutes, createRoute, updateRoute } from "@/server/routes"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "@/lib/get-session"
+import { getBuses, createBus, updateBus } from "@/server/buses"
 
 // GET method
 export async function GET(req: NextRequest) {
@@ -11,15 +11,15 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const userId = searchParams.get("userId")
-  const id = searchParams.get("routeId")
+  const id = searchParams.get("id")
 
   if (!userId) {
     return NextResponse.json({ error: "Missing userId" }, { status: 400 })
   }
 
   try {
-    const routes = id ? await getRoutes(userId, id) : await getRoutes(userId)
-    return NextResponse.json(routes)
+    const buses = await getBuses(userId, id || undefined)
+    return NextResponse.json(buses)
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred"
@@ -34,15 +34,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { userId, ...routeData } = await req.json()
+  const { userId, ...busData } = await req.json()
 
   if (!userId) {
     return NextResponse.json({ error: "Missing userId" }, { status: 400 })
   }
 
   try {
-    const newRoute = await createRoute(userId, routeData)
-    return NextResponse.json(newRoute, { status: 201 })
+    const newBus = await createBus(userId, busData)
+    return NextResponse.json(newBus, { status: 201 })
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred"
@@ -57,18 +57,15 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { userId, id, ...routeData } = await req.json()
+  const { userId, id, ...busData } = await req.json()
 
   if (!userId || !id) {
-    return NextResponse.json(
-      { error: "Missing userId or routeId" },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "Missing userId or id" }, { status: 400 })
   }
 
   try {
-    const updatedRoute = await updateRoute(userId, id, routeData)
-    return NextResponse.json(updatedRoute)
+    const updatedBus = await updateBus(userId, id, busData)
+    return NextResponse.json(updatedBus)
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred"

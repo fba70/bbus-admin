@@ -116,7 +116,8 @@ export interface Bus {
   updatedAt: Date
   organizationId: string // Bus can refer to single organization only
   organization: Organization
-  routes: Route[] // Bus can refer to multiple routes
+  routeId: string
+  route: Route // Bus can refer to single route at a time only
 }
 
 export interface Application {

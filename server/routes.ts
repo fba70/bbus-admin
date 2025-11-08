@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm"
 export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
   if (id) {
     // Fetch a specific route by routeId
-    const [record] = await db.select().from(route).where(eq(route.routeId, id))
+    const [record] = await db.select().from(route).where(eq(route.id, id))
     if (!record) {
       throw new Error(`Route with ID ${id} not found.`)
     }

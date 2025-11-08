@@ -48,6 +48,11 @@ export const auth = betterAuth({
     },
     requireEmailVerification: true,
   },
+  rateLimit: {
+    enabled: true,
+    window: 10,
+    max: 20,
+  },
   databaseHooks: {
     session: {
       create: {

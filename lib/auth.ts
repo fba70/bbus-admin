@@ -10,7 +10,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import { lastLoginMethod, organization } from "better-auth/plugins"
 import { Resend } from "resend"
-import { admin, member, owner } from "./auth/permissions"
+import { admin, member, owner, driver } from "./auth/permissions"
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
@@ -94,6 +94,7 @@ export const auth = betterAuth({
         owner,
         admin,
         member,
+        driver,
       },
     }),
     lastLoginMethod(),

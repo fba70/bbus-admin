@@ -10,6 +10,7 @@ import {
   MapPinned,
   FileSpreadsheet,
   Settings,
+  Building,
 } from "lucide-react"
 import Image from "next/image"
 import {
@@ -27,6 +28,7 @@ import { Logout } from "./logout"
 import { ModeSwitcher } from "./mode-switcher"
 import { usePathname } from "next/navigation"
 import { getOrganizations } from "@/server/organizations"
+// import { Organization } from "@/db/schema"
 
 export const items = [
   {
@@ -75,12 +77,14 @@ export function AppSidebar() {
   const pathname = usePathname()
 
   const [organization, setOrganization] = useState<string | null>(null)
+  const [organizationSlug, setOrganizationSlug] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchOrganization = async () => {
       try {
         const organizations = await getOrganizations()
         setOrganization(organizations[0]?.name || "Unknown Organization")
+        setOrganizationSlug(organizations[0]?.slug || "unknown-organization")
       } catch (error) {
         console.error("Failed to fetch organization data:", error)
         setOrganization("Error Loading Organization")
@@ -135,6 +139,21 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <ModeSwitcher className="flex items-center justify-start" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <a
+                href={`/organization/${organizationSlug}`}
+                className={`flex items-center p-2 rounded-md ${
+                  pathname === `/organization/${organizationSlug}`
+                    ? "bg-gray-200 dark:bg-gray-700 text-blue-600"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+              >
+                <Building size={24} className="mr-2" />
+                <span className="text-lg">Организация</span>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

@@ -50,3 +50,32 @@ export const removeMember = async (memberId: string) => {
     }
   }
 }
+
+export const editMember = async (memberId: string, updatedRole: Role) => {
+  const admin = await isAdmin()
+
+  if (!admin) {
+    return {
+      success: false,
+      error: "You are not authorized to edit members.",
+    }
+  }
+
+  try {
+    await db
+      .update(member)
+      .set({ role: updatedRole })
+      .where(eq(member.id, memberId))
+
+    return {
+      success: true,
+      error: null,
+    }
+  } catch (error) {
+    console.error(error)
+    return {
+      success: false,
+      error: "Failed to edit member.",
+    }
+  }
+}

@@ -122,14 +122,12 @@ export interface Bus {
 
 export interface Application {
   id: string
-  phoneIMEI: string
-  addDescription: string
+  deviceId: string
+  appDescription?: string
   createdAt: Date
   updatedAt: Date
   userId: string // Application refers to single user only at a time
   user: User
-  organizationId: string // Application refers to single organization only
-  organization: Organization
 }
 
 export interface Journey {
@@ -145,18 +143,16 @@ export interface Journey {
   bus: Bus
   routeId: string // Journey refers to single route only
   route: Route
-  organizationId: string // Journey refers to single organization only
-  organization: Organization
-  applicationId: string
+  applicationId: string // Journey refers to single application only
   application: Application
 }
 
 export type JourneyStatus =
   | "REGISTRATION_OK"
-  | "REGISTRATION_FAILED"
+  | "REGISTRATION_ERROR"
   | "AUTHORIZATION_OK"
   | "AUTHORIZATION_FAILED"
-  | "ERROR"
+  | "AUTHORIZATION_ERROR"
 
 export interface Log {
   id: string

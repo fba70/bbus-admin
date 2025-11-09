@@ -212,6 +212,83 @@ export type Bus = typeof bus.$inferSelect & {
   route: Route
 }
 
+export const application = pgTable("application", {
+  id: text("id").primaryKey(),
+  deviceId: text("device_id"),
+  appDescription: text("app_description"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+})
+
+export const applicationRelations = relations(application, ({ one }) => ({
+  user: one(user, {
+    fields: [application.userId],
+    references: [user.id],
+  }),
+}))
+
+export type Application = typeof application.$inferSelect & {
+  user: typeof user.$inferSelect
+}
+
+export const journeyStatus = pgEnum("journey_status", [
+  "REGISTRATION_OK",
+  "REGISTRATION_ERROR",
+  "AUTHORIZATION_OK",
+  "AUTHORIZATION_FAILED",
+  "AUTHORIZATION_ERROR",
+])
+
+export const journey = pgTable("journey", {
+  id: text("id").primaryKey(),
+  journeyTimeStamp: timestamp("journey_time_stamp").notNull(),
+  coordinatesLattitude: text("coordinates_lattitude"),
+  coordinatesLongitude: text("coordinates_longitude"),
+  journeyStatus: journeyStatus("journey_status"),
+  createdAt: timestamp("created_at").notNull(),
+  accessCardId: text("access_card_id")
+    .notNull()
+    .references(() => accessCard.id, { onDelete: "cascade" }),
+  busId: text("bus_id")
+    .notNull()
+    .references(() => bus.id, { onDelete: "cascade" }),
+  routeId: text("route_id")
+    .notNull()
+    .references(() => route.id, { onDelete: "cascade" }),
+  applicationId: text("application_id")
+    .notNull()
+    .references(() => application.id, { onDelete: "cascade" }),
+})
+
+export const journeyRelations = relations(journey, ({ one }) => ({
+  accessCard: one(accessCard, {
+    fields: [journey.accessCardId],
+    references: [accessCard.id],
+  }),
+  bus: one(bus, {
+    fields: [journey.busId],
+    references: [bus.id],
+  }),
+  route: one(route, {
+    fields: [journey.routeId],
+    references: [route.id],
+  }),
+  application: one(application, {
+    fields: [journey.applicationId],
+    references: [application.id],
+  }),
+}))
+
+export type Journey = typeof journey.$inferSelect & {
+  accessCard: typeof accessCard.$inferSelect
+  bus: typeof bus.$inferSelect
+  route: typeof route.$inferSelect
+  application: typeof application.$inferSelect
+}
+
 export const schema = {
   user,
   session,
@@ -223,9 +300,13 @@ export const schema = {
   route,
   accessCard,
   bus,
+  application,
+  journey,
   organizationRelations,
   memberRelations,
   routeRelations,
   accessCardRelations,
   busRelations,
+  applicationRelations,
+  journeyRelations,
 }

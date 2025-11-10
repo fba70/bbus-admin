@@ -7,6 +7,8 @@ import { authClient } from "@/lib/auth-client"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { Journey } from "@/db/schema"
+import { unauthorized } from "next/navigation"
+import Loading from "@/app/loading"
 
 type ChartData = {
   day: string
@@ -14,11 +16,18 @@ type ChartData = {
 }
 
 export default function DashboardPage() {
-  const { data: user } = authClient.useSession()
+  const { data: user, isPending } = authClient.useSession()
 
   // console.log("Authenticated user:", user)
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+
+  if (!user && !isPending) {
+    unauthorized()
+  }
+
+  const [chartData, setChartData] = useState<ChartData[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [stats, setStats] = useState({
     accessCards: 0,
@@ -27,10 +36,17 @@ export default function DashboardPage() {
     routes: 0,
     journeys: 0,
   })
-  const [chartData, setChartData] = useState<ChartData[]>([])
+
+  useEffect(() => {
+    if (user && user.user.id) {
+      fetchData()
+    }
+  }, [user])
 
   const fetchData = async () => {
     try {
+      setLoading(true)
+
       if (!user || !user.user.id) {
         throw new Error("User is not authenticated.")
       }
@@ -72,15 +88,12 @@ export default function DashboardPage() {
 
       const preparedChartData = prepareChartData(journeysRes.data)
       setChartData(preparedChartData)
+      setLoading(false)
       // console.log("Chart data:", preparedChartData)
     } catch (error) {
       console.error("Error fetching data:", error)
     }
   }
-
-  useEffect(() => {
-    fetchData()
-  }, [user])
 
   const chartConfig = {
     journeys: {
@@ -110,9 +123,16 @@ export default function DashboardPage() {
     return chartData
   }
 
+  if (loading) {
+    return <Loading />
+  }
+
   return (
     <div className="flex flex-col gap-2 items-center justify-start h-screen">
       <h1 className="text-2xl font-bold my-4">Главная страница</h1>
+
+      <h2 className="text-xl font-bold mt-6 mb-4">Общая статистика</h2>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="w-[190px]">
           <CardHeader>
@@ -162,6 +182,8 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      <h2 className="text-xl font-bold mt-8">Статистика поездок по дням</h2>
+
       <ChartContainer
         config={chartConfig}
         className="min-h-[200px] w-full mt-6"
@@ -183,6 +205,7 @@ export default function DashboardPage() {
             tickLine={false}
             tickMargin={10}
             axisLine={false}
+            tickFormatter={(value) => (Number.isInteger(value) ? value : "")}
           />
           <Bar dataKey="journeys" fill="#2563eb" radius={5} />
         </BarChart>
@@ -190,3 +213,13 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+/*
+// Refresh session when component mounts:
+
+const { data: user, isPending, refresh } = authClient.useSession();
+
+useEffect(() => {
+  refresh(); // Force a session refresh when the component mounts
+}, [])
+*/

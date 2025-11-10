@@ -15,6 +15,10 @@ import { admin, member, owner, driver } from "./auth/permissions"
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
 export const auth = betterAuth({
+  session: {
+    maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+    updateAge: 60 * 60 * 24, // Update session every 24 hours
+  },
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
       resend.emails.send({

@@ -8,7 +8,7 @@ export default function Home() {
       <Image
         src="/Logo_BBUS.png"
         alt="Business Bus"
-        width={505}
+        width={346}
         height={140}
         className="rounded-lg"
       />

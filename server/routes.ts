@@ -3,6 +3,7 @@
 import { db } from "@/db/drizzle"
 import { Route, route } from "@/db/schema"
 import { eq } from "drizzle-orm"
+import { createLog, LogInput } from "./logs"
 
 // GET action
 export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
@@ -13,11 +14,29 @@ export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
       throw new Error(`Route with ID ${id} not found.`)
     }
 
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched route with ID " + id,
+    }
+    await createLog(userId, logData)
+
     // console.log("Fetched route by ID:", record)
     return [record as Route]
   } else {
     // Fetch all routes
     const allRoutes = await db.select().from(route)
+
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all routes",
+    }
+    await createLog(userId, logData)
     // console.log("Fetched all routes:", allRoutes)
     return allRoutes as Route[]
   }
@@ -36,6 +55,16 @@ export async function createRoute(
   }
 
   await db.insert(route).values(newRoute)
+
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "CREATE",
+    timeStamp: new Date(),
+    metadata: "Created route with ID " + newRoute.id,
+  }
+  await createLog(userId, logData)
+
   return newRoute
 }
 
@@ -57,5 +86,15 @@ export async function updateRoute(
   }
 
   await db.update(route).set(updatedRoute).where(eq(route.id, id))
+
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "UPDATE",
+    timeStamp: new Date(),
+    metadata: "Updated route with ID " + id,
+  }
+  await createLog(userId, logData)
+
   return updatedRoute as Route
 }

@@ -157,13 +157,11 @@ export type JourneyStatus =
 export interface Log {
   id: string
   timeStamp: Date
-  logMessage?: string
-  logActionType: "CREATE" | "UPDATE" | "DELETE" | "ACCESS"
+  metadata?: string
+  logActionType: "CREATE" | "UPDATE" | "GET" | "ACCESS"
   createdAt: Date
   userId: string
   user: User
-  organizationId: string
-  organization: Organization
   applicationId?: string
   application?: Application
 }

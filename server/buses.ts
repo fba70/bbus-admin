@@ -3,6 +3,7 @@
 import { db } from "@/db/drizzle"
 import { Bus, bus } from "@/db/schema"
 import { eq } from "drizzle-orm"
+import { createLog, LogInput } from "./logs"
 
 // GET action
 export async function getBuses(userId: string, id?: string): Promise<Bus[]> {
@@ -19,6 +20,15 @@ export async function getBuses(userId: string, id?: string): Promise<Bus[]> {
       throw new Error(`Bus with ID ${id} not found.`)
     }
 
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched bus with ID " + id,
+    }
+    await createLog(userId, logData)
+
     // console.log("Fetched bus by ID:", record)
     return [record as Bus]
   } else {
@@ -29,6 +39,16 @@ export async function getBuses(userId: string, id?: string): Promise<Bus[]> {
         route: true, // Include route data
       },
     })
+
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all buses",
+    }
+    await createLog(userId, logData)
+
     // console.log("Fetched all buses:", allBuses)
     return allBuses as Bus[]
   }
@@ -47,6 +67,16 @@ export async function createBus(
   }
 
   await db.insert(bus).values(newBus)
+
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "CREATE",
+    timeStamp: new Date(),
+    metadata: "Created bus with ID " + newBus.id,
+  }
+  await createLog(userId, logData)
+
   return newBus
 }
 
@@ -68,5 +98,15 @@ export async function updateBus(
   }
 
   await db.update(bus).set(updatedBus).where(eq(bus.id, id))
+
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "UPDATE",
+    timeStamp: new Date(),
+    metadata: "Updated bus with ID " + id,
+  }
+  await createLog(userId, logData)
+
   return updatedBus as Bus
 }

@@ -102,7 +102,7 @@ export function AppSidebar() {
           <Image
             src="/Logo_BBUS.png"
             alt="Business Bus"
-            width={252}
+            width={173}
             height={70}
             className="rounded-lg dark:bg-gray-200"
           />

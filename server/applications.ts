@@ -3,6 +3,7 @@
 import { db } from "@/db/drizzle"
 import { Application, application } from "@/db/schema"
 import { eq } from "drizzle-orm"
+import { createLog, LogInput } from "./logs"
 
 // GET action
 export async function getApplications(
@@ -21,6 +22,15 @@ export async function getApplications(
       throw new Error(`Application with ID ${id} not found.`)
     }
 
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: id,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched application data with ID " + id,
+    }
+    await createLog(userId, logData)
+
     // console.log("Fetched bus by ID:", record)
     return [record as Application]
   } else {
@@ -30,6 +40,16 @@ export async function getApplications(
         user: true, // Include user data
       },
     })
+
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all applications data",
+    }
+    await createLog(userId, logData)
+
     // console.log("Fetched all applications:", allApplications)
     return allApplications as Application[]
   }
@@ -48,6 +68,16 @@ export async function createApplication(
   }
 
   await db.insert(application).values(newApplication)
+
+  const logData: LogInput = {
+    userId: sessionUserId,
+    applicationId: newApplication.id,
+    logActionType: "CREATE",
+    timeStamp: new Date(),
+    metadata: "Created application with ID " + newApplication.id,
+  }
+  await createLog(sessionUserId, logData)
+
   return newApplication
 }
 
@@ -75,5 +105,15 @@ export async function updateApplication(
     .update(application)
     .set(updatedApplication)
     .where(eq(application.id, id))
+
+  const logData: LogInput = {
+    userId: sessionUserId,
+    applicationId: updatedApplication.id,
+    logActionType: "UPDATE",
+    timeStamp: new Date(),
+    metadata: "Updated application with ID " + updatedApplication.id,
+  }
+  await createLog(sessionUserId, logData)
+
   return updatedApplication as Application
 }

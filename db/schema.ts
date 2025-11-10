@@ -289,6 +289,43 @@ export type Journey = typeof journey.$inferSelect & {
   application: typeof application.$inferSelect
 }
 
+export const logActionType = pgEnum("log_action_type", [
+  "CREATE",
+  "UPDATE",
+  "GET",
+  "ACCESS",
+])
+
+export const log = pgTable("log", {
+  id: text("id").primaryKey(),
+  timeStamp: timestamp("time_stamp").notNull(),
+  logActionType: logActionType("log_action_type").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  metadata: text("metadata"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  applicationId: text("application_id").references(() => application.id, {
+    onDelete: "cascade",
+  }),
+})
+
+export const logRelations = relations(log, ({ one }) => ({
+  user: one(user, {
+    fields: [log.userId],
+    references: [user.id],
+  }),
+  application: one(application, {
+    fields: [log.applicationId],
+    references: [application.id],
+  }),
+}))
+
+export type Log = typeof log.$inferSelect & {
+  user: typeof user.$inferSelect
+  application?: typeof application.$inferSelect
+}
+
 export const schema = {
   user,
   session,
@@ -302,6 +339,7 @@ export const schema = {
   bus,
   application,
   journey,
+  log,
   organizationRelations,
   memberRelations,
   routeRelations,
@@ -309,4 +347,5 @@ export const schema = {
   busRelations,
   applicationRelations,
   journeyRelations,
+  logRelations,
 }

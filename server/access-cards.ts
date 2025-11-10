@@ -3,6 +3,7 @@
 import { db } from "@/db/drizzle"
 import { AccessCard, accessCard } from "@/db/schema"
 import { eq } from "drizzle-orm"
+import { createLog, LogInput } from "./logs"
 
 // GET action
 export async function getAccessCards(
@@ -19,11 +20,30 @@ export async function getAccessCards(
       throw new Error(`Access card with ID ${id} not found.`)
     }
 
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched access card with ID " + id,
+    }
+    await createLog(userId, logData)
+
     // console.log("Fetched access card by ID:", record)
     return [record as AccessCard]
   } else {
     // Fetch all access cards
     const allAccessCards = await db.select().from(accessCard)
+
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all access cards",
+    }
+    await createLog(userId, logData)
+
     // console.log("Fetched all access cards:", allAccessCards)
     return allAccessCards as AccessCard[]
   }
@@ -42,6 +62,16 @@ export async function createAccessCard(
   }
 
   await db.insert(accessCard).values(newAccesscard)
+
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "CREATE",
+    timeStamp: new Date(),
+    metadata: "Created access card with ID " + newAccesscard.id,
+  }
+  await createLog(userId, logData)
+
   return newAccesscard
 }
 
@@ -69,5 +99,15 @@ export async function updateAccessCard(
     .update(accessCard)
     .set(updatedAccessCard)
     .where(eq(accessCard.id, id))
+
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "UPDATE",
+    timeStamp: new Date(),
+    metadata: "Updated access card with ID " + id,
+  }
+  await createLog(userId, logData)
+
   return updatedAccessCard as AccessCard
 }

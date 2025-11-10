@@ -167,8 +167,6 @@ export default function MembersTable({ members }: MembersTableProps) {
 
   return (
     <div className="flex flex-col gap-2 items-center justify-start h-screen">
-      <h1 className="text-2xl font-bold my-4">Участники</h1>
-
       <div className="w-[95%] flex flex-row items-center gap-6 py-4">
         <Input
           placeholder="Фильтр по имени пользователя..."

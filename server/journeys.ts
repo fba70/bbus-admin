@@ -3,6 +3,7 @@
 import { db } from "@/db/drizzle"
 import { Journey, journey } from "@/db/schema"
 import { eq } from "drizzle-orm"
+import { createLog, LogInput } from "./logs"
 
 // GET action
 export async function getJourneys(
@@ -24,6 +25,15 @@ export async function getJourneys(
       throw new Error(`Journey with ID ${id} not found.`)
     }
 
+    const logData: LogInput = {
+      userId: sessionUserId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched journeys with ID " + id,
+    }
+    await createLog(sessionUserId, logData)
+
     // console.log("Fetched route by ID:", record)
     return [record as Journey]
   } else {
@@ -36,6 +46,16 @@ export async function getJourneys(
         application: true,
       },
     })
+
+    const logData: LogInput = {
+      userId: sessionUserId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all journeys",
+    }
+    await createLog(sessionUserId, logData)
+
     // console.log("Fetched all routes:", allRoutes)
     return allJourneys as Journey[]
   }
@@ -54,6 +74,16 @@ export async function createJourney(
   }
 
   await db.insert(journey).values(newJourney)
+
+  const logData: LogInput = {
+    userId: sessionUserId,
+    applicationId: null,
+    logActionType: "CREATE",
+    timeStamp: new Date(),
+    metadata: "Created journey with ID " + newJourney.id,
+  }
+  await createLog(sessionUserId, logData)
+
   return newJourney
 }
 
@@ -78,5 +108,15 @@ export async function updateJourney(
   }
 
   await db.update(journey).set(updatedJourney).where(eq(journey.id, id))
+
+  const logData: LogInput = {
+    userId: sessionUserId,
+    applicationId: null,
+    logActionType: "UPDATE",
+    timeStamp: new Date(),
+    metadata: "Updated journey with ID " + id,
+  }
+  await createLog(sessionUserId, logData)
+
   return updatedJourney as Journey
 }

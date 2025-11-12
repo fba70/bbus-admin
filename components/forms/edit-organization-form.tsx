@@ -24,6 +24,7 @@ import { authClient } from "@/lib/auth-client"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Loader2, SquarePen } from "lucide-react"
+import { Organization } from "@/db/schema"
 
 const formSchema = z.object({
   name: z.string().min(2).max(50),
@@ -31,38 +32,44 @@ const formSchema = z.object({
   taxId: z.string().min(10).max(12),
 })
 
-export function CreateOrganizationForm({
+export function EditOrganizationForm({
   onSuccess,
+  organization,
 }: {
   onSuccess: () => void
+  organization: Organization
 }) {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      slug: "",
-      taxId: "",
+      name: organization.name,
+      slug: organization?.slug || undefined,
+      taxId: organization?.metadata
+        ? JSON.parse(organization.metadata).taxId || ""
+        : "",
     },
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true)
-      await authClient.organization.create({
-        name: values.name,
-        slug: values.slug,
-        metadata: { taxId: values.taxId },
-        keepCurrentActiveOrganization: false,
-        logo: "",
+      await authClient.organization.update({
+        data: {
+          name: values.name,
+          slug: values.slug,
+          metadata: { taxId: values.taxId },
+          logo: "",
+        },
+        organizationId: organization.id,
       })
 
       onSuccess()
-      toast.success("Organization created successfully")
+      toast.success("Organization updated successfully")
     } catch (error) {
       console.error(error)
-      toast.error("Failed to create organization")
+      toast.error("Failed to update organization")
     } finally {
       setIsLoading(false)
     }
@@ -71,11 +78,13 @@ export function CreateOrganizationForm({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default">Создать клиента</Button>
+        <Button variant="outline">
+          <SquarePen />
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Создать организацию</DialogTitle>
+          <DialogTitle>Редактировать организацию</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -125,7 +134,7 @@ export function CreateOrganizationForm({
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "Создать клиента"
+                "Обновить клиента"
               )}
             </Button>
           </form>

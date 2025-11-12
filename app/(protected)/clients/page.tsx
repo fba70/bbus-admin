@@ -28,13 +28,13 @@ import {
 import { authClient } from "@/lib/auth-client"
 import { unauthorized } from "next/navigation"
 import Loading from "@/app/loading"
-import { Route } from "@/db/schema"
+import { Organization } from "@/db/schema"
 import { toast } from "sonner"
 import axios from "axios"
-import { CreateRouteForm } from "@/components/forms/create-route-form"
-import { EditRouteForm } from "@/components/forms/edit-route-form"
+import { CreateOrganizationForm } from "@/components/forms/create-organization-form"
+import { EditOrganizationForm } from "@/components/forms/edit-organization-form"
 
-export default function Routes() {
+export default function Clients() {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -42,8 +42,9 @@ export default function Routes() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
-
-  const [routes, setRoutes] = useState<Route[] | null>(null)
+  const [organizations, setOrganizations] = useState<Organization[] | null>(
+    null
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,10 +60,10 @@ export default function Routes() {
   }
 
   useEffect(() => {
-    fetchRoutes()
+    fetchOrganizations()
   }, [user])
 
-  async function fetchRoutes() {
+  async function fetchOrganizations() {
     try {
       setLoading(true)
       setError(null)
@@ -71,97 +72,79 @@ export default function Routes() {
         throw new Error("User is not authenticated.")
       }
 
-      const response = await axios.get(`${baseUrl}/api/routes`, {
+      const response = await axios.get(`${baseUrl}/api/clients`, {
         params: { userId: user.user.id },
       })
 
-      const data: Route[] = response.data
-      setRoutes(data)
-      toast.success("Routes fetched successfully.")
+      const data: Organization[] = response.data
+      setOrganizations(data)
+      toast.success("Organizations fetched successfully.")
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred."
       )
-      toast.error(`Error fetching routes data: ${error}`)
+      toast.error(`Error fetching organizations data: ${error}`)
     } finally {
       setLoading(false)
     }
   }
 
-  // console.log("Routes data:", routes)
+  // console.log("Organizations:", organizations)
 
-  const columns: ColumnDef<Route>[] = [
+  const columns: ColumnDef<Organization>[] = [
     {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => <div className="hidden">{row.getValue("id")}</div>,
     },
     {
-      accessorKey: "routeId",
+      accessorKey: "name",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Номер маршрута
+          Название организации
           <ArrowUpDown />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("routeId")}</div>
+        <div className="capitalize">{row.getValue("name")}</div>
       ),
     },
     {
-      accessorKey: "routeName",
+      accessorKey: "metadata", // Target the metadata field
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Название маршрута
+          ИНН
           <ArrowUpDown />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("routeName")}</div>
-      ),
-    },
-    {
-      accessorKey: "organization",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Организация
-          <ArrowUpDown />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="capitalize">
-          {row.original.organization?.name || "N/A"}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const metadata = JSON.parse(row.getValue("metadata") || "{}")
+        return <div className="lowercase">{metadata?.taxId || "N/A"}</div>
+      },
       filterFn: (row, columnId, filterValue) => {
-        const organizationName = row.original.organization?.name || ""
-        return organizationName
-          .toLowerCase()
-          .includes(filterValue.toLowerCase())
+        const metadata = JSON.parse(row.getValue(columnId) || "{}")
+        return metadata.taxId?.toLowerCase().includes(filterValue.toLowerCase())
       },
     },
     {
-      accessorKey: "routeMode",
+      accessorKey: "slug",
       header: ({ column }) => (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Режим маршрута
+          Slug организации
           <ArrowUpDown />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("routeMode")}</div>
+        <div className="lowercase">{row.getValue("slug")}</div>
       ),
     },
     {
@@ -210,28 +193,17 @@ export default function Routes() {
           return null
         }
         return (
-          <EditRouteForm
-            route={row.original}
-            userId={user.user.id}
-            onSuccess={fetchRoutes} // Pass the callback
+          <EditOrganizationForm
+            organization={row.original}
+            onSuccess={fetchOrganizations}
           />
         )
       },
     },
   ]
 
-  /*
- {
-      accessorKey: "routeDescription",
-      header: "Описание маршрута",
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("routeDescription")}</div>
-      ),
-    },
-  */
-
   const table = useReactTable({
-    data: routes || [],
+    data: organizations || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -259,53 +231,29 @@ export default function Routes() {
 
   return (
     <div className="flex flex-col gap-2 items-center justify-start h-screen">
-      <h1 className="text-2xl font-bold my-4">Маршруты</h1>
+      <h1 className="text-2xl font-bold my-4">Организации</h1>
 
       <div className="w-[95%] flex flex-row items-center gap-6 py-4">
         <Input
-          placeholder="Фильтр ID маршрутов..."
-          value={(table.getColumn("routeId")?.getFilterValue() as string) ?? ""}
+          placeholder="Фильтр по названию организации..."
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("routeId")?.setFilterValue(event.target.value)
+            table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className=""
         />
         <Input
-          placeholder="Фильтр названий маршрутов..."
+          placeholder="Фильтр по ИНН организации..."
           value={
-            (table.getColumn("routeName")?.getFilterValue() as string) ?? ""
+            (table.getColumn("metadata")?.getFilterValue() as string) ?? ""
           }
           onChange={(event) =>
-            table.getColumn("routeName")?.setFilterValue(event.target.value)
-          }
-          className=""
-        />
-        <Input
-          placeholder="Фильтр режимов маршрутов..."
-          value={
-            (table.getColumn("routeMode")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("routeMode")?.setFilterValue(event.target.value)
-          }
-          className=""
-        />
-        <Input
-          placeholder="Фильтр по организации..."
-          value={
-            (table.getColumn("organization")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("organization")?.setFilterValue(event.target.value)
+            table.getColumn("metadata")?.setFilterValue(event.target.value)
           }
           className=""
         />
         {user?.user.id && user.session.activeOrganizationId && (
-          <CreateRouteForm
-            userId={user.user.id}
-            organizationId={user.session.activeOrganizationId}
-            onSuccess={fetchRoutes} // Pass the callback
-          />
+          <CreateOrganizationForm onSuccess={fetchOrganizations} />
         )}
       </div>
       <div className="w-[95%] overflow-hidden rounded-md border">

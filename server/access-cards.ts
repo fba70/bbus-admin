@@ -12,10 +12,13 @@ export async function getAccessCards(
 ): Promise<AccessCard[]> {
   if (id) {
     // Fetch a specific access card by access card ID
-    const [record] = await db
-      .select()
-      .from(accessCard)
-      .where(eq(accessCard.id, id))
+    const record = await db.query.accessCard.findFirst({
+      where: eq(accessCard.id, id),
+      with: {
+        organization: true, // Include organization data
+      },
+    })
+
     if (!record) {
       throw new Error(`Access card with ID ${id} not found.`)
     }
@@ -33,7 +36,11 @@ export async function getAccessCards(
     return [record as AccessCard]
   } else {
     // Fetch all access cards
-    const allAccessCards = await db.select().from(accessCard)
+    const allAccessCards = await db.query.accessCard.findMany({
+      with: {
+        organization: true, // Include organization data
+      },
+    })
 
     const logData: LogInput = {
       userId: userId,

@@ -18,6 +18,7 @@ export async function getApplications(
         user: true, // Include user data
       },
     })
+
     if (!record) {
       throw new Error(`Application with ID ${id} not found.`)
     }

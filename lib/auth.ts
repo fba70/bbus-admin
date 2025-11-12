@@ -11,6 +11,7 @@ import { nextCookies } from "better-auth/next-js"
 import { lastLoginMethod, organization } from "better-auth/plugins"
 import { Resend } from "resend"
 import { admin, member, owner, driver } from "./auth/permissions"
+import { createLog, LogInput } from "@/server/logs"
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
@@ -18,6 +19,11 @@ export const auth = betterAuth({
   session: {
     maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
     updateAge: 60 * 60 * 24, // Update session every 24 hours
+  },
+  rateLimit: {
+    enabled: true,
+    window: 10,
+    max: 20,
   },
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
@@ -52,11 +58,6 @@ export const auth = betterAuth({
     },
     requireEmailVerification: true,
   },
-  rateLimit: {
-    enabled: true,
-    window: 10,
-    max: 20,
-  },
   databaseHooks: {
     session: {
       create: {
@@ -68,6 +69,16 @@ export const auth = betterAuth({
               activeOrganizationId: organization?.id,
             },
           }
+        },
+        after: async (session) => {
+          const logData: LogInput = {
+            userId: session.userId,
+            applicationId: null,
+            logActionType: "ACCESS",
+            timeStamp: new Date(),
+            metadata: "User accessed the system via session creation",
+          }
+          await createLog(session.userId, logData)
         },
       },
     },

@@ -9,7 +9,13 @@ import { createLog, LogInput } from "./logs"
 export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
   if (id) {
     // Fetch a specific route by routeId
-    const [record] = await db.select().from(route).where(eq(route.id, id))
+    const record = await db.query.route.findFirst({
+      where: eq(route.id, id),
+      with: {
+        organization: true, // Include organization data
+      },
+    })
+
     if (!record) {
       throw new Error(`Route with ID ${id} not found.`)
     }
@@ -27,7 +33,11 @@ export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
     return [record as Route]
   } else {
     // Fetch all routes
-    const allRoutes = await db.select().from(route)
+    const allRoutes = await db.query.route.findMany({
+      with: {
+        organization: true, // Include organization data
+      },
+    })
 
     const logData: LogInput = {
       userId: userId,

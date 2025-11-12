@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
   Settings,
   Building,
+  Users,
 } from "lucide-react"
 import Image from "next/image"
 import {
@@ -62,16 +63,24 @@ export const items = [
     icon: Smartphone,
   },
   {
+    title: "Клиенты",
+    url: "/clients",
+    icon: Building,
+  },
+  {
     title: "Отчеты",
     url: "/reports",
     icon: FileSpreadsheet,
   },
-  {
-    title: "Настройки",
+]
+
+/*
+{
+    title: "Истории",
     url: "/settings",
     icon: Settings,
   },
-]
+*/
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -151,8 +160,8 @@ export function AppSidebar() {
                     : "hover:bg-gray-100 dark:hover:bg-gray-800"
                 }`}
               >
-                <Building size={24} className="mr-2" />
-                <span className="text-lg">Организация</span>
+                <Users size={24} className="mr-2" />
+                <span className="text-lg">Пользователи</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -167,7 +176,7 @@ export function AppSidebar() {
                 }`}
               >
                 <Settings size={24} className="mr-2" />
-                <span className="text-lg">Пользователь</span>
+                <span className="text-lg">Настройки</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -88,6 +88,8 @@ export default function AccessCards() {
     }
   }
 
+  console.log("Access Cards data:", accessCards)
+
   const columns: ColumnDef<AccessCard>[] = [
     {
       accessorKey: "id",
@@ -153,6 +155,29 @@ export default function AccessCards() {
       cell: ({ row }) => (
         <div className="capitalize">{row.getValue("cardStatus")}</div>
       ),
+    },
+    {
+      accessorKey: "organization",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Организация
+          <ArrowUpDown />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {row.original.organization?.name || "N/A"}
+        </div>
+      ),
+      filterFn: (row, columnId, filterValue) => {
+        const organizationName = row.original.organization?.name || ""
+        return organizationName
+          .toLowerCase()
+          .includes(filterValue.toLowerCase())
+      },
     },
     {
       accessorKey: "createdAt",
@@ -277,6 +302,16 @@ export default function AccessCards() {
           }
           onChange={(event) =>
             table.getColumn("cardStatus")?.setFilterValue(event.target.value)
+          }
+          className=""
+        />
+        <Input
+          placeholder="Фильтр по организации..."
+          value={
+            (table.getColumn("organization")?.getFilterValue() as string) ?? ""
+          }
+          onChange={(event) =>
+            table.getColumn("organization")?.setFilterValue(event.target.value)
           }
           className=""
         />

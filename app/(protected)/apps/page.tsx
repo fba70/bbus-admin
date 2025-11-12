@@ -62,7 +62,7 @@ export default function Applications() {
     fetchApplications()
   }, [user])
 
-  console.log("Applications data:", applications)
+  // console.log("Applications data:", applications)
 
   async function fetchApplications() {
     try {

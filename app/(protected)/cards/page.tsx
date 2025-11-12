@@ -88,7 +88,7 @@ export default function AccessCards() {
     }
   }
 
-  console.log("Access Cards data:", accessCards)
+  // console.log("Access Cards data:", accessCards)
 
   const columns: ColumnDef<AccessCard>[] = [
     {

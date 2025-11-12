@@ -286,7 +286,9 @@ export const journeyRelations = relations(journey, ({ one }) => ({
 export type Journey = typeof journey.$inferSelect & {
   accessCard: typeof accessCard.$inferSelect
   bus: typeof bus.$inferSelect
-  route: typeof route.$inferSelect
+  route: typeof route.$inferSelect & {
+    organization: typeof organization.$inferSelect
+  }
   application: typeof application.$inferSelect
 }
 

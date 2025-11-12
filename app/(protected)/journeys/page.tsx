@@ -87,6 +87,8 @@ export default function Journeys() {
     }
   }
 
+  console.log("Journeys data:", journeys)
+
   const columns: ColumnDef<Journey>[] = [
     {
       accessorKey: "id",
@@ -208,6 +210,29 @@ export default function Journeys() {
       cell: ({ row }) => (
         <div className="capitalize">{row.original.application.deviceId}</div>
       ),
+    },
+    {
+      accessorKey: "organization",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Организация
+          <ArrowUpDown />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {row.original.route?.organization?.name || "N/A"}
+        </div>
+      ),
+      filterFn: (row, columnId, filterValue) => {
+        const organizationName = row.original.route.organization?.name || ""
+        return organizationName
+          .toLowerCase()
+          .includes(filterValue.toLowerCase())
+      },
     },
     {
       accessorKey: "createdAt",
@@ -340,6 +365,16 @@ export default function Journeys() {
             table
               .getColumn("journey.accessCard.cardId")
               ?.setFilterValue(event.target.value)
+          }
+          className=""
+        />
+        <Input
+          placeholder="Фильтр по организации..."
+          value={
+            (table.getColumn("organization")?.getFilterValue() as string) ?? ""
+          }
+          onChange={(event) =>
+            table.getColumn("organization")?.setFilterValue(event.target.value)
           }
           className=""
         />

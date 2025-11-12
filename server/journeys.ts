@@ -17,7 +17,11 @@ export async function getJourneys(
       with: {
         accessCard: true,
         bus: true,
-        route: true,
+        route: {
+          with: {
+            organization: true, // Include organization data within the route
+          },
+        },
         application: true,
       },
     })
@@ -42,7 +46,11 @@ export async function getJourneys(
       with: {
         accessCard: true,
         bus: true,
-        route: true,
+        route: {
+          with: {
+            organization: true, // Include organization data within the route
+          },
+        },
         application: true,
       },
     })

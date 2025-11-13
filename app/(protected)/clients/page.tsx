@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -146,6 +147,33 @@ export default function Clients() {
       cell: ({ row }) => (
         <div className="lowercase">{row.getValue("slug")}</div>
       ),
+    },
+    {
+      accessorKey: "logo",
+      header: "Logo",
+      accessorFn: (row) => {
+        const metadata = row.metadata ? JSON.parse(row.metadata) : {}
+        return metadata.logo || null
+      },
+      cell: ({ row }) => {
+        const logoBase64 = row.original.metadata
+          ? JSON.parse(row.original.metadata).logo
+          : null
+        if (!logoBase64) {
+          return <span>No Logo</span>
+        }
+        return (
+          <div style={{ width: 50, height: 50 }}>
+            <Image
+              src={`data:image/png;base64,${logoBase64}`}
+              alt="Organization Logo"
+              width={50}
+              height={50}
+              style={{ objectFit: "contain" }}
+            />
+          </div>
+        )
+      },
     },
     {
       accessorKey: "createdAt",

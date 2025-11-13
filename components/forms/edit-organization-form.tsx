@@ -30,6 +30,7 @@ const formSchema = z.object({
   name: z.string().min(2).max(50),
   slug: z.string().min(2).max(50),
   taxId: z.string().min(10).max(12),
+  logo: z.string().optional(),
 })
 
 export function EditOrganizationForm({
@@ -49,6 +50,7 @@ export function EditOrganizationForm({
       taxId: organization?.metadata
         ? JSON.parse(organization.metadata).taxId || ""
         : "",
+      logo: "",
     },
   })
 
@@ -59,7 +61,7 @@ export function EditOrganizationForm({
         data: {
           name: values.name,
           slug: values.slug,
-          metadata: { taxId: values.taxId },
+          metadata: { taxId: values.taxId, logo: values.logo },
           logo: "",
         },
         organizationId: organization.id,
@@ -124,6 +126,50 @@ export function EditOrganizationForm({
                   <FormLabel>ИНН</FormLabel>
                   <FormControl>
                     <Input placeholder="1234567890" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="logo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Логотип</FormLabel>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Логотип должен быть в формате PNG/JPG и не превышать 500 Кб
+                  </p>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0]
+                        if (!file) {
+                          toast.error("Please select a logo file.")
+                          return
+                        }
+
+                        // Check file size (500 KB limit)
+                        const maxSize = 500 * 1024 // 500 KB
+                        if (file.size > maxSize) {
+                          toast.error("File size exceeds 500 KB.")
+                          return
+                        }
+
+                        // Convert file to Base64
+                        const reader = new FileReader()
+                        reader.onload = () => {
+                          const base64String = reader.result
+                            ?.toString()
+                            .split(",")[1] // Extract Base64 string
+                          form.setValue("logo", base64String || "") // Set Base64 string in form
+                        }
+                        reader.readAsDataURL(file)
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -150,7 +150,7 @@ export default function Clients() {
     },
     {
       accessorKey: "logo",
-      header: "Logo",
+      header: "Логотип",
       accessorFn: (row) => {
         const metadata = row.metadata ? JSON.parse(row.metadata) : {}
         return metadata.logo || null

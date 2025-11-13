@@ -35,6 +35,7 @@ export default function DashboardPage() {
     buses: 0,
     routes: 0,
     journeys: 0,
+    organizations: 0,
   })
 
   useEffect(() => {
@@ -57,12 +58,12 @@ export default function DashboardPage() {
         applicationsRes,
         busesRes,
         routesRes,
+        organizationsRes,
         journeysRes,
       ] = await Promise.all([
         axios.get(`${baseUrl}/api/access-cards`, {
           params: { userId: user.user.id },
         }),
-
         axios.get(`${baseUrl}/api/buses`, {
           params: { userId: user.user.id },
         }),
@@ -70,6 +71,9 @@ export default function DashboardPage() {
           params: { userId: user.user.id },
         }),
         axios.get(`${baseUrl}/api/applications`, {
+          params: { userId: user.user.id },
+        }),
+        axios.get(`${baseUrl}/api/clients`, {
           params: { userId: user.user.id },
         }),
         axios.get(`${baseUrl}/api/journeys`, {
@@ -83,6 +87,7 @@ export default function DashboardPage() {
         applications: applicationsRes.data.length,
         buses: busesRes.data.length,
         routes: routesRes.data.length,
+        organizations: organizationsRes.data.length,
         journeys: journeysRes.data.length,
       })
 
@@ -133,8 +138,18 @@ export default function DashboardPage() {
 
       <h2 className="text-xl font-bold mt-6 mb-4">Общая статистика</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="w-[190px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card className="w-[160px]">
+          <CardHeader>
+            <CardTitle className="text-center">Клиентов</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-semibold text-center">
+              {stats.organizations}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="w-[160px]">
           <CardHeader>
             <CardTitle className="text-center">Карт доступа</CardTitle>
           </CardHeader>
@@ -144,7 +159,7 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="w-[160px]">
           <CardHeader>
             <CardTitle className="text-center">Приложений</CardTitle>
           </CardHeader>
@@ -154,7 +169,7 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="w-[160px]">
           <CardHeader>
             <CardTitle className="text-center">Автобусов</CardTitle>
           </CardHeader>
@@ -162,7 +177,7 @@ export default function DashboardPage() {
             <p className="text-4xl font-semibold text-center">{stats.buses}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="w-[160px]">
           <CardHeader>
             <CardTitle className="text-center">Маршрутов</CardTitle>
           </CardHeader>
@@ -170,7 +185,7 @@ export default function DashboardPage() {
             <p className="text-4xl font-semibold text-center">{stats.routes}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="w-[160px]">
           <CardHeader>
             <CardTitle className="text-center">Поездок</CardTitle>
           </CardHeader>

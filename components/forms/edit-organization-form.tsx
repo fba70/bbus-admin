@@ -50,7 +50,9 @@ export function EditOrganizationForm({
       taxId: organization?.metadata
         ? JSON.parse(organization.metadata).taxId || ""
         : "",
-      logo: "",
+      logo: organization?.metadata
+        ? JSON.parse(organization.metadata).logo || ""
+        : "",
     },
   })
 
@@ -141,6 +143,27 @@ export function EditOrganizationForm({
                   <p className="text-xs text-muted-foreground mb-2">
                     Логотип должен быть в формате PNG/JPG и не превышать 500 Кб
                   </p>
+                  {/* Display current logo */}
+                  {field.value && (
+                    <div className="mb-4">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Текущий логотип:
+                      </p>
+                      <div style={{ width: 100, height: 100 }}>
+                        <img
+                          src={`data:image/png;base64,${field.value}`}
+                          alt="Current Logo"
+                          style={{
+                            maxWidth: "100%",
+                            maxHeight: "100%",
+                            objectFit: "contain",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                   <FormControl>
                     <Input
                       type="file"

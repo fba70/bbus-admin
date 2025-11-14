@@ -6,9 +6,13 @@ import { eq } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
 // GET action
-export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
+export async function getRoutes(
+  userId: string,
+  id?: string,
+  orderRouteId?: string
+): Promise<Route[]> {
   if (id) {
-    // Fetch a specific route by routeId
+    // Fetch a specific route by route ID
     const record = await db.query.route.findFirst({
       where: eq(route.id, id),
       with: {
@@ -29,7 +33,26 @@ export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
     }
     await createLog(userId, logData)
 
-    // console.log("Fetched route by ID:", record)
+    return [record as Route]
+  } else if (orderRouteId) {
+    // Fetch a specific route by routeId
+    const record = await db.query.route.findFirst({
+      where: eq(route.routeId, orderRouteId),
+    })
+
+    if (!record) {
+      throw new Error(`Route with routeId ${orderRouteId} not found.`)
+    }
+
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched route with routeId " + orderRouteId,
+    }
+    await createLog(userId, logData)
+
     return [record as Route]
   } else {
     // Fetch all routes
@@ -47,7 +70,7 @@ export async function getRoutes(userId: string, id?: string): Promise<Route[]> {
       metadata: "Fetched all routes",
     }
     await createLog(userId, logData)
-    // console.log("Fetched all routes:", allRoutes)
+
     return allRoutes as Route[]
   }
 }

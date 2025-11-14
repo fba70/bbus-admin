@@ -6,7 +6,11 @@ import { eq } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
 // GET action
-export async function getBuses(userId: string, id?: string): Promise<Bus[]> {
+export async function getBuses(
+  userId: string,
+  id?: string,
+  orderBusPlateNumber?: string
+): Promise<Bus[]> {
   if (id) {
     // Fetch a specific bus by bus ID
     const record = await db.query.bus.findFirst({
@@ -29,7 +33,25 @@ export async function getBuses(userId: string, id?: string): Promise<Bus[]> {
     }
     await createLog(userId, logData)
 
-    // console.log("Fetched bus by ID:", record)
+    return [record as Bus]
+  } else if (orderBusPlateNumber) {
+    // Fetch a specific bus by busPlateNumber
+    const record = await db.query.bus.findFirst({
+      where: eq(bus.busPlateNumber, orderBusPlateNumber),
+    })
+    if (!record) {
+      throw new Error(`Bus with plate number ${orderBusPlateNumber} not found.`)
+    }
+
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched bus with plate number " + orderBusPlateNumber,
+    }
+    await createLog(userId, logData)
+
     return [record as Bus]
   } else {
     // Fetch all buses with relations
@@ -49,7 +71,6 @@ export async function getBuses(userId: string, id?: string): Promise<Bus[]> {
     }
     await createLog(userId, logData)
 
-    // console.log("Fetched all buses:", allBuses)
     return allBuses as Bus[]
   }
 }

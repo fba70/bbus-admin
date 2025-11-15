@@ -378,6 +378,27 @@ export default function Journeys() {
           }
           className=""
         />
+
+        <Button
+          variant="default"
+          onClick={() => {
+            if (journeys && journeys.length > 0) {
+              const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(
+                JSON.stringify(journeys, null, 2)
+              )}`
+              const downloadAnchorNode = document.createElement("a")
+              downloadAnchorNode.setAttribute("href", dataStr)
+              downloadAnchorNode.setAttribute("download", "journeys.json")
+              document.body.appendChild(downloadAnchorNode)
+              downloadAnchorNode.click()
+              downloadAnchorNode.remove()
+            } else {
+              toast.error("No journeys data available to export.")
+            }
+          }}
+        >
+          Export Journeys
+        </Button>
       </div>
       <div className="w-[95%] overflow-hidden rounded-md border">
         <Table>

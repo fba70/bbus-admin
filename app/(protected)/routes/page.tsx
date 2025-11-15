@@ -17,6 +17,7 @@ import {
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Table,
   TableBody,
@@ -25,6 +26,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { authClient } from "@/lib/auth-client"
 import { unauthorized } from "next/navigation"
 import Loading from "@/app/loading"
@@ -49,6 +58,9 @@ export default function Routes() {
 
   const [pageSize, setPageSize] = React.useState(10) // Default items per page
   const [pageIndex, setPageIndex] = React.useState(0) // Default page index
+
+  const [showFileUploadDialog, setShowFileUploadDialog] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const { data: user, isPending } = authClient.useSession()
 
@@ -89,6 +101,77 @@ export default function Routes() {
   }
 
   // console.log("Routes data:", routes)
+
+  async function handleFileUpload(file: File | null) {
+    if (!file) {
+      console.log("No file selected.")
+      return
+    }
+
+    const fileName = file.name.toLowerCase()
+
+    if (fileName.endsWith(".json")) {
+      try {
+        // Read the file content
+        const fileContent = await file.text()
+        const parsedData = JSON.parse(fileContent)
+
+        // Validate the structure
+        if (
+          !parsedData.RoutesDictionary ||
+          !Array.isArray(parsedData.RoutesDictionary) ||
+          !parsedData.RoutesDictionary.every(
+            (item: any) =>
+              typeof item.routeUid1c === "string" &&
+              typeof item.counterpartyInn === "string" &&
+              typeof item.routeUid === "string"
+          )
+        ) {
+          throw new Error(
+            "Invalid JSON structure. Expected 'RoutesDictionary' array with objects containing 'routeUid1c', 'counterpartyInn', and 'routeUid' as strings."
+          )
+        }
+
+        // Add the apiKey parameter and rename the key
+        const finalData = {
+          apiKey: process.env.NEXT_PUBLIC_BBUS_API_KEY,
+          RoutesDictionary: parsedData.RoutesDictionary, // Rename the key here
+        }
+
+        // console.log("Final buses object ready for processing:", finalData)
+
+        // Update data with the API
+        try {
+          const response = await axios.post(
+            `${baseUrl}/api/sources/routes`,
+            finalData
+          )
+          console.log("API response:", response.data)
+          toast.success("Справочник маршрутов обновлен.")
+
+          fetchRoutes() // Refresh the routes data
+        } catch (error) {
+          console.error(
+            "Error uploading routes data:",
+            error instanceof Error ? error.message : String(error)
+          )
+          toast.error("Не удалось обновить справочник маршрутов.")
+        }
+      } catch (error) {
+        console.error(
+          "Error processing JSON file:",
+          error instanceof Error ? error.message : String(error)
+        )
+      }
+    } else if (fileName.endsWith(".csv")) {
+      console.log("CSV file processing is not implemented yet.")
+      // Leave CSV processing empty for now
+    } else {
+      console.error(
+        "Неподдерживаемый тип файла. Пожалуйста, загрузите JSON или CSV файл."
+      )
+    }
+  }
 
   const columns: ColumnDef<Route>[] = [
     {
@@ -301,11 +384,66 @@ export default function Routes() {
           className=""
         />
         {user?.user.id && user.session.activeOrganizationId && (
-          <CreateRouteForm
-            userId={user.user.id}
-            organizationId={user.session.activeOrganizationId}
-            onSuccess={fetchRoutes} // Pass the callback
-          />
+          <>
+            <CreateRouteForm
+              userId={user.user.id}
+              organizationId={user.session.activeOrganizationId}
+              onSuccess={fetchRoutes} // Pass the callback
+            />
+
+            <Dialog
+              open={showFileUploadDialog}
+              onOpenChange={setShowFileUploadDialog}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="default"
+                  onClick={() => setShowFileUploadDialog(true)} // Open the file upload dialog
+                >
+                  Обновить справочник
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Обновить справочник из файла</DialogTitle>
+                </DialogHeader>
+                <Label
+                  htmlFor="fileUpload"
+                  className="text-sm text-muted-foreground"
+                >
+                  Загрузите файл с данными по маршрутам в формате JSON или CSV
+                  согласованной структуры:
+                </Label>
+                <Input
+                  id="fileUpload"
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} // Store the selected file
+                  className="mt-2"
+                />
+                <DialogFooter>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowFileUploadDialog(false)} // Close the dialog
+                  >
+                    Отменить
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      if (selectedFile) {
+                        handleFileUpload(selectedFile) // Process the file on button click
+                      } else {
+                        toast.error("Please select a file before uploading.")
+                      }
+                      setShowFileUploadDialog(false) // Close the dialog
+                    }}
+                  >
+                    Загрузить
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
       </div>
       <div className="w-[95%] overflow-hidden rounded-md border">

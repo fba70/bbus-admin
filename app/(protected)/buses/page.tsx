@@ -17,6 +17,7 @@ import {
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Table,
   TableBody,
@@ -33,6 +34,14 @@ import { toast } from "sonner"
 import axios from "axios"
 import { CreateBusForm } from "@/components/forms/create-bus-form"
 import { EditBusForm } from "@/components/forms/edit-bus-form"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export default function Buses() {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -49,6 +58,9 @@ export default function Buses() {
 
   const [pageSize, setPageSize] = React.useState(10) // Default items per page
   const [pageIndex, setPageIndex] = React.useState(0) // Default page index
+
+  const [showFileUploadDialog, setShowFileUploadDialog] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const { data: user, isPending } = authClient.useSession()
 
@@ -77,14 +89,82 @@ export default function Buses() {
 
       const data: Bus[] = response.data
       setBuses(data)
-      toast.success("Buses fetched successfully.")
+      toast.success("Список автобусов загружен")
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred."
       )
-      toast.error(`Error fetching buses data: ${error}`)
+      toast.error(`Ошибка при загрузке данных автобусов: ${error}`)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleFileUpload(file: File | null) {
+    if (!file) {
+      console.log("No file selected.")
+      return
+    }
+
+    const fileName = file.name.toLowerCase()
+
+    if (fileName.endsWith(".json")) {
+      try {
+        // Read the file content
+        const fileContent = await file.text()
+        const parsedData = JSON.parse(fileContent)
+
+        // Validate the structure
+        if (
+          !parsedData.StateNumber ||
+          !Array.isArray(parsedData.StateNumber) ||
+          !parsedData.StateNumber.every(
+            (item: any) => typeof item.StateNumber === "string"
+          )
+        ) {
+          throw new Error(
+            "Invalid JSON structure. Expected 'StateNumber' array."
+          )
+        }
+
+        // Add the apiKey parameter and rename the key
+        const finalData = {
+          apiKey: process.env.NEXT_PUBLIC_BBUS_API_KEY,
+          StateNumbersDictionary: parsedData.StateNumber, // Rename the key here
+        }
+
+        // console.log("Final buses object ready for processing:", finalData)
+
+        // Update data with the API
+        try {
+          const response = await axios.post(
+            `${baseUrl}/api/sources/buses`,
+            finalData
+          )
+          console.log("API response:", response.data)
+          toast.success("Справочник автобусов обновлен.")
+
+          fetchBuses() // Refresh the buses data
+        } catch (error) {
+          console.error(
+            "Error uploading buses data:",
+            error instanceof Error ? error.message : String(error)
+          )
+          toast.error("Не удалось обновить справочник автобусов.")
+        }
+      } catch (error) {
+        console.error(
+          "Error processing JSON file:",
+          error instanceof Error ? error.message : String(error)
+        )
+      }
+    } else if (fileName.endsWith(".csv")) {
+      console.log("CSV file processing is not implemented yet.")
+      // Leave CSV processing empty for now
+    } else {
+      console.error(
+        "Неподдерживаемый тип файла. Пожалуйста, загрузите JSON или CSV файл."
+      )
     }
   }
 
@@ -247,11 +327,66 @@ export default function Buses() {
           className=""
         />
         {user?.user.id && user.session.activeOrganizationId && (
-          <CreateBusForm
-            userId={user.user.id}
-            organizationId={user.session.activeOrganizationId}
-            onSuccess={fetchBuses} // Pass the callback
-          />
+          <>
+            <CreateBusForm
+              userId={user.user.id}
+              organizationId={user.session.activeOrganizationId}
+              onSuccess={fetchBuses} // Pass the callback
+            />
+
+            <Dialog
+              open={showFileUploadDialog}
+              onOpenChange={setShowFileUploadDialog}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="default"
+                  onClick={() => setShowFileUploadDialog(true)} // Open the file upload dialog
+                >
+                  Обновить справочник
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Обновить справочник из файла</DialogTitle>
+                </DialogHeader>
+                <Label
+                  htmlFor="fileUpload"
+                  className="text-sm text-muted-foreground"
+                >
+                  Загрузите файл с данными по номерам автобусов в формате JSON
+                  или CSV согласованной структуры:
+                </Label>
+                <Input
+                  id="fileUpload"
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} // Store the selected file
+                  className="mt-2"
+                />
+                <DialogFooter>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowFileUploadDialog(false)} // Close the dialog
+                  >
+                    Отменить
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      if (selectedFile) {
+                        handleFileUpload(selectedFile) // Process the file on button click
+                      } else {
+                        toast.error("Please select a file before uploading.")
+                      }
+                      setShowFileUploadDialog(false) // Close the dialog
+                    }}
+                  >
+                    Загрузить
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
       </div>
       <div className="w-[95%] overflow-hidden rounded-md border">

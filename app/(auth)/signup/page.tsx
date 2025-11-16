@@ -16,7 +16,7 @@ export default function SignupPage() {
             alt="Business Bus"
             width={505}
             height={140}
-            className="rounded-lg dark:invert"
+            className="rounded-lg"
           />
           <span className="text-2xl">БИЗНЕС БАС</span>
         </Link>

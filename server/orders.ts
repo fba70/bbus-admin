@@ -22,6 +22,7 @@ export async function getOrganizationsFromOrders(
     throw new Error(`Organization with partyTaxId ${partyTaxId} not found.`)
   }
 
+  /*
   const logData: LogInput = {
     userId: userId,
     applicationId: null,
@@ -30,6 +31,7 @@ export async function getOrganizationsFromOrders(
     metadata: "Fetched organization with partyTaxId " + partyTaxId,
   }
   await createLog(userId, logData)
+  */
 
   return [record as Organization]
 }
@@ -47,6 +49,7 @@ export async function getRoutesFromOrders(
     throw new Error(`Route with routeId ${orderRouteId} not found.`)
   }
 
+  /*
   const logData: LogInput = {
     userId: userId,
     applicationId: null,
@@ -55,6 +58,7 @@ export async function getRoutesFromOrders(
     metadata: "Fetched route with routeId " + orderRouteId,
   }
   await createLog(userId, logData)
+  */
 
   return [record as Route]
 }
@@ -75,6 +79,7 @@ export async function getBusesFromOrders(
     throw new Error(`Bus with plate number ${orderBusPlateNumber} not found.`)
   }
 
+  /*
   const logData: LogInput = {
     userId: userId || "",
     applicationId: null,
@@ -83,6 +88,7 @@ export async function getBusesFromOrders(
     metadata: "Fetched bus with plate number " + orderBusPlateNumber,
   }
   await createLog(userId, logData)
+  */
 
   return [record as Bus]
 }

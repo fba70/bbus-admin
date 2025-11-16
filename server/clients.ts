@@ -20,6 +20,7 @@ export async function getOrganizations(
       throw new Error(`Organization with ID ${id} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -28,6 +29,7 @@ export async function getOrganizations(
       metadata: "Fetched organization with ID " + id,
     }
     await createLog(userId, logData)
+    */
 
     // console.log("Fetched route by ID:", record)
     return [record as Organization]

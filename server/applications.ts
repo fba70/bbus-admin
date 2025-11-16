@@ -23,6 +23,7 @@ export async function getApplications(
       throw new Error(`Application with ID ${id} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: id,
@@ -31,6 +32,7 @@ export async function getApplications(
       metadata: "Fetched application data with ID " + id,
     }
     await createLog(userId, logData)
+    */
 
     // console.log("Fetched bus by ID:", record)
     return [record as Application]

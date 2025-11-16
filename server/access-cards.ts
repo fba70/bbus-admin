@@ -23,6 +23,7 @@ export async function getAccessCards(
       throw new Error(`Access card with ID ${id} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -31,6 +32,7 @@ export async function getAccessCards(
       metadata: "Fetched access card with ID " + id,
     }
     await createLog(userId, logData)
+    */
 
     // console.log("Fetched access card by ID:", record)
     return [record as AccessCard]

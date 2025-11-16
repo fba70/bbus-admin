@@ -24,6 +24,7 @@ export async function getBuses(
       throw new Error(`Bus with ID ${id} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -32,6 +33,7 @@ export async function getBuses(
       metadata: "Fetched bus with ID " + id,
     }
     await createLog(userId, logData)
+    */
 
     return [record as Bus]
   } else if (orderBusPlateNumber) {
@@ -43,6 +45,7 @@ export async function getBuses(
       throw new Error(`Bus with plate number ${orderBusPlateNumber} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -51,6 +54,7 @@ export async function getBuses(
       metadata: "Fetched bus with plate number " + orderBusPlateNumber,
     }
     await createLog(userId, logData)
+    */
 
     return [record as Bus]
   } else {
@@ -62,6 +66,7 @@ export async function getBuses(
       },
     })
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -70,6 +75,7 @@ export async function getBuses(
       metadata: "Fetched all buses",
     }
     await createLog(userId, logData)
+    */
 
     return allBuses as Bus[]
   }

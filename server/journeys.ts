@@ -29,6 +29,7 @@ export async function getJourneys(
       throw new Error(`Journey with ID ${id} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: sessionUserId,
       applicationId: null,
@@ -37,6 +38,7 @@ export async function getJourneys(
       metadata: "Fetched journeys with ID " + id,
     }
     await createLog(sessionUserId, logData)
+    */
 
     // console.log("Fetched route by ID:", record)
     return [record as Journey]
@@ -55,6 +57,7 @@ export async function getJourneys(
       },
     })
 
+    /*
     const logData: LogInput = {
       userId: sessionUserId,
       applicationId: null,
@@ -63,6 +66,7 @@ export async function getJourneys(
       metadata: "Fetched all journeys",
     }
     await createLog(sessionUserId, logData)
+    */
 
     // console.log("Fetched all routes:", allRoutes)
     return allJourneys as Journey[]

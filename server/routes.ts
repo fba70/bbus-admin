@@ -24,6 +24,7 @@ export async function getRoutes(
       throw new Error(`Route with ID ${id} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -32,6 +33,7 @@ export async function getRoutes(
       metadata: "Fetched route with ID " + id,
     }
     await createLog(userId, logData)
+    */
 
     return [record as Route]
   } else if (orderRouteId) {
@@ -44,6 +46,7 @@ export async function getRoutes(
       throw new Error(`Route with routeId ${orderRouteId} not found.`)
     }
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -52,6 +55,7 @@ export async function getRoutes(
       metadata: "Fetched route with routeId " + orderRouteId,
     }
     await createLog(userId, logData)
+    */
 
     return [record as Route]
   } else {
@@ -62,6 +66,7 @@ export async function getRoutes(
       },
     })
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -70,6 +75,7 @@ export async function getRoutes(
       metadata: "Fetched all routes",
     }
     await createLog(userId, logData)
+    */
 
     return allRoutes as Route[]
   }

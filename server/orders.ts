@@ -1,7 +1,16 @@
 "use server"
 
 import { db } from "@/db/drizzle"
-import { Route, route, Bus, bus, Organization, organization } from "@/db/schema"
+import {
+  Route,
+  route,
+  Bus,
+  bus,
+  Organization,
+  organization,
+  Journey,
+  journey,
+} from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
@@ -243,4 +252,38 @@ export async function updateRouteDictionary(
   await createLog(userId, logData)
 
   return validRoutesToInsert as Route[]
+}
+
+export async function getJourneysWithFilters(
+  busIds: string[],
+  routeIds: string[],
+  startTime: string,
+  endTime: string
+) {
+  const allJourneys: Journey[] = await db.query.journey.findMany({
+    with: {
+      accessCard: true,
+      bus: true,
+      route: {
+        with: {
+          organization: true,
+        },
+      },
+      application: true,
+    },
+  })
+
+  const filteredJourneys = allJourneys.filter((journey) => {
+    return (
+      (!busIds || busIds.length === 0 || busIds.includes(journey.busId)) &&
+      (!routeIds ||
+        routeIds.length === 0 ||
+        routeIds.includes(journey.routeId)) &&
+      (!startTime ||
+        new Date(journey.journeyTimeStamp) >= new Date(startTime)) &&
+      (!endTime || new Date(journey.journeyTimeStamp) <= new Date(endTime))
+    )
+  })
+
+  return filteredJourneys
 }

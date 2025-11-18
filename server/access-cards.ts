@@ -44,6 +44,7 @@ export async function getAccessCards(
       },
     })
 
+    /*
     const logData: LogInput = {
       userId: userId,
       applicationId: null,
@@ -52,6 +53,7 @@ export async function getAccessCards(
       metadata: "Fetched all access cards",
     }
     await createLog(userId, logData)
+    */
 
     // console.log("Fetched all access cards:", allAccessCards)
     return allAccessCards as AccessCard[]

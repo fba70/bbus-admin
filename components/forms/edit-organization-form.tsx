@@ -167,7 +167,7 @@ export function EditOrganizationForm({
                   <FormControl>
                     <Input
                       type="file"
-                      accept="image/*"
+                      accept="image/png, image/jpeg" // Allow both PNG and JPEG
                       onChange={async (event) => {
                         const file = event.target.files?.[0]
                         if (!file) {
@@ -179,6 +179,15 @@ export function EditOrganizationForm({
                         const maxSize = 500 * 1024 // 500 KB
                         if (file.size > maxSize) {
                           toast.error("File size exceeds 500 KB.")
+                          return
+                        }
+
+                        // Check file type (PNG or JPEG)
+                        const allowedTypes = ["image/png", "image/jpeg"]
+                        if (!allowedTypes.includes(file.type)) {
+                          toast.error(
+                            "Invalid file type. Only PNG and JPEG are allowed."
+                          )
                           return
                         }
 

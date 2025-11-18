@@ -1,7 +1,14 @@
 "use server"
 
 import { db } from "@/db/drizzle"
-import { Journey, journey, AccessCard, accessCard } from "@/db/schema"
+import {
+  Journey,
+  journey,
+  AccessCard,
+  accessCard,
+  Route,
+  route,
+} from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
@@ -88,6 +95,13 @@ export async function createJourney(
 
   await db.insert(journey).values(newJourney)
 
+  const journeyRoute = await db.query.route.findFirst({
+    where: eq(route.id, newJourney.routeId),
+  })
+  if (!journeyRoute) {
+    throw new Error(`Route with ID ${newJourney.routeId} not found.`)
+  }
+
   if (journeyData.newCardId || journeyData.newCardType) {
     const newAccesscard: typeof accessCard.$inferInsert = {
       id: crypto.randomUUID(), // Generate a unique ID
@@ -95,7 +109,7 @@ export async function createJourney(
       nameOnCard: "",
       cardType: journeyData.newCardType!,
       cardStatus: "ACTIVE",
-      organizationId: journeyData.route!.organizationId,
+      organizationId: journeyRoute.organizationId,
       createdAt: new Date(),
       updatedAt: new Date(),
     }

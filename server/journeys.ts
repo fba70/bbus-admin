@@ -80,6 +80,7 @@ export async function createJourney(
 ): Promise<Journey> {
   const newJourney = {
     ...journeyData,
+    journeyTimeStamp: new Date(journeyData.journeyTimeStamp), // Convert to Date object
     id: crypto.randomUUID(), // Generate a unique ID
     createdAt: new Date(),
     updatedAt: new Date(),

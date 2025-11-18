@@ -70,6 +70,9 @@ export function EditApplicationForm({
     fetchUsers()
   }, [baseUrl])
 
+  console.log("Organization ID:", organizationId)
+  console.log("Users:", users)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

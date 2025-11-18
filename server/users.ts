@@ -87,14 +87,17 @@ export const getUsers = async (organizationId: string) => {
       where: eq(member.organizationId, organizationId),
     })
 
+    console.log("Members:", members)
+
+    // Fetch users whose IDs are in the list of member.userId
     const users = await db.query.user.findMany({
-      where: not(
-        inArray(
-          user.id,
-          members.map((member) => member.userId)
-        )
+      where: inArray(
+        user.id,
+        members.map((member) => member.userId)
       ),
     })
+
+    console.log("Users:", users)
 
     return users
   } catch (error) {

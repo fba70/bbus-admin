@@ -87,7 +87,7 @@ export default function Journeys() {
     }
   }
 
-  console.log("Journeys data:", journeys)
+  // console.log("Journeys data:", journeys)
 
   const columns: ColumnDef<Journey>[] = [
     {

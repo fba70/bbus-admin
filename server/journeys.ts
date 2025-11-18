@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/db/drizzle"
-import { Journey, journey } from "@/db/schema"
+import { Journey, journey, AccessCard, accessCard } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
@@ -87,6 +87,27 @@ export async function createJourney(
   }
 
   await db.insert(journey).values(newJourney)
+
+  if (journeyData.newCardId || journeyData.newCardType) {
+    const newAccesscard: typeof accessCard.$inferInsert = {
+      id: crypto.randomUUID(), // Generate a unique ID
+      cardId: journeyData.newCardId!,
+      nameOnCard: "",
+      cardType: journeyData.newCardType!,
+      cardStatus: "ACTIVE",
+      organizationId: journeyData.route!.organizationId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    await db.insert(accessCard).values(newAccesscard)
+
+    // Update the journey record with the new accessCardId
+    await db
+      .update(journey)
+      .set({ accessCardId: newAccesscard.id })
+      .where(eq(journey.id, newJourney.id))
+  }
 
   const logData: LogInput = {
     userId: sessionUserId,

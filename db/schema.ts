@@ -249,6 +249,8 @@ export const journey = pgTable("journey", {
   coordinatesLattitude: text("coordinates_lattitude"),
   coordinatesLongitude: text("coordinates_longitude"),
   journeyStatus: journeyStatus("journey_status"),
+  newCardId: text("new_card_id"),
+  newCardType: cardType("new_card_type"),
   createdAt: timestamp("created_at").notNull(),
   accessCardId: text("access_card_id")
     .notNull()

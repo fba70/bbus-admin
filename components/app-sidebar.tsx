@@ -67,11 +67,6 @@ export const items = [
     url: "/clients",
     icon: Building,
   },
-  {
-    title: "Отчеты",
-    url: "/reports",
-    icon: FileSpreadsheet,
-  },
 ]
 
 /*

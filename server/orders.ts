@@ -14,6 +14,48 @@ import {
 import { eq } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
+/*
+{
+        with: {
+          organization: true,
+        },
+      }
+*/
+
+type JourneyWithoutOrganization = Omit<Journey, "route"> & {
+  route: Omit<Route, "organization">
+}
+
+export async function getJourneysWithFilters(
+  busIds: string[],
+  routeIds: string[],
+  startTime: string,
+  endTime: string
+): Promise<JourneyWithoutOrganization[]> {
+  const allJourneys = await db.query.journey.findMany({
+    with: {
+      accessCard: true,
+      bus: true,
+      route: true, // No nested `organization`
+      application: true,
+    },
+  })
+
+  const filteredJourneys = allJourneys.filter((journey) => {
+    return (
+      (!busIds || busIds.length === 0 || busIds.includes(journey.busId)) &&
+      (!routeIds ||
+        routeIds.length === 0 ||
+        routeIds.includes(journey.routeId)) &&
+      (!startTime ||
+        new Date(journey.journeyTimeStamp) >= new Date(startTime)) &&
+      (!endTime || new Date(journey.journeyTimeStamp) <= new Date(endTime))
+    )
+  })
+
+  return filteredJourneys
+}
+
 export async function getOrganizationsFromOrders(
   userId: string,
   partyTaxId: string
@@ -31,73 +73,81 @@ export async function getOrganizationsFromOrders(
     throw new Error(`Organization with partyTaxId ${partyTaxId} not found.`)
   }
 
-  /*
-  const logData: LogInput = {
-    userId: userId,
-    applicationId: null,
-    logActionType: "GET",
-    timeStamp: new Date(),
-    metadata: "Fetched organization with partyTaxId " + partyTaxId,
-  }
-  await createLog(userId, logData)
-  */
-
   return [record as Organization]
 }
 
 export async function getRoutesFromOrders(
   userId: string,
-  orderRouteId: string
+  organizationId: string, // Organization ID is now required
+  orderRouteId?: string // Make this parameter optional
 ): Promise<Route[]> {
-  // Fetch a specific route by routeId
+  if (!organizationId) {
+    throw new Error("Organization ID is required.")
+  }
+
+  if (!orderRouteId) {
+    // Fetch all routes for the given organization if orderRouteId is not provided
+    const records = await db.query.route.findMany({
+      where: eq(route.organizationId, organizationId), // Use eq directly
+    })
+
+    if (!records || records.length === 0) {
+      throw new Error(`No routes found for organizationId ${organizationId}.`)
+    }
+
+    return records as Route[]
+  }
+
+  // Fetch a specific route by routeId for the given organization
   const record = await db.query.route.findFirst({
-    where: eq(route.routeId, orderRouteId),
+    where: (fields) =>
+      eq(fields.routeId, orderRouteId) &&
+      eq(fields.organizationId, organizationId), // Combine conditions explicitly
   })
 
   if (!record) {
-    throw new Error(`Route with routeId ${orderRouteId} not found.`)
+    throw new Error(
+      `Route with routeId ${orderRouteId} not found for organizationId ${organizationId}.`
+    )
   }
-
-  /*
-  const logData: LogInput = {
-    userId: userId,
-    applicationId: null,
-    logActionType: "GET",
-    timeStamp: new Date(),
-    metadata: "Fetched route with routeId " + orderRouteId,
-  }
-  await createLog(userId, logData)
-  */
 
   return [record as Route]
 }
 
 export async function getBusesFromOrders(
   userId: string,
-  orderBusPlateNumber: string
+  organizationId: string, // Organization ID is now required
+  orderBusPlateNumber?: string // Make this parameter optional
 ): Promise<Bus[]> {
+  if (!organizationId) {
+    throw new Error("Organization ID is required.")
+  }
+
   if (!orderBusPlateNumber) {
-    throw new Error(`Bus with plate number parameter is mandatory`)
+    // Fetch all buses for the given organization if orderBusPlateNumber is not provided
+    const records = await db.query.bus.findMany({
+      where: eq(bus.organizationId, organizationId), // Use eq directly
+    })
+
+    if (!records || records.length === 0) {
+      throw new Error(`No buses found for organizationId ${organizationId}.`)
+    }
+
+    return records as Bus[]
   }
 
-  // Fetch a specific bus by busPlateNumber
+  // Fetch a specific bus by busPlateNumber for the given organization
   const record = await db.query.bus.findFirst({
-    where: eq(bus.busPlateNumber, orderBusPlateNumber),
+    where: (fields) =>
+      eq(fields.busPlateNumber, orderBusPlateNumber) &&
+      eq(fields.organizationId, organizationId), // Combine conditions explicitly
   })
-  if (!record) {
-    throw new Error(`Bus with plate number ${orderBusPlateNumber} not found.`)
-  }
 
-  /*
-  const logData: LogInput = {
-    userId: userId || "",
-    applicationId: null,
-    logActionType: "GET",
-    timeStamp: new Date(),
-    metadata: "Fetched bus with plate number " + orderBusPlateNumber,
+  if (!record) {
+    throw new Error(
+      `Bus with plate number ${orderBusPlateNumber} not found for organizationId ${organizationId}.`
+    )
   }
-  await createLog(userId, logData)
-  */
 
   return [record as Bus]
 }
@@ -252,38 +302,4 @@ export async function updateRouteDictionary(
   await createLog(userId, logData)
 
   return validRoutesToInsert as Route[]
-}
-
-export async function getJourneysWithFilters(
-  busIds: string[],
-  routeIds: string[],
-  startTime: string,
-  endTime: string
-) {
-  const allJourneys: Journey[] = await db.query.journey.findMany({
-    with: {
-      accessCard: true,
-      bus: true,
-      route: {
-        with: {
-          organization: true,
-        },
-      },
-      application: true,
-    },
-  })
-
-  const filteredJourneys = allJourneys.filter((journey) => {
-    return (
-      (!busIds || busIds.length === 0 || busIds.includes(journey.busId)) &&
-      (!routeIds ||
-        routeIds.length === 0 ||
-        routeIds.includes(journey.routeId)) &&
-      (!startTime ||
-        new Date(journey.journeyTimeStamp) >= new Date(startTime)) &&
-      (!endTime || new Date(journey.journeyTimeStamp) <= new Date(endTime))
-    )
-  })
-
-  return filteredJourneys
 }

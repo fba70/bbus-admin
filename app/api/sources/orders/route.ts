@@ -9,12 +9,13 @@ import {
 // POST method
 export async function POST(req: NextRequest) {
   const bbusApiKey = process.env.BBUS_API_KEY
+  const bbusApiKeyPublic = process.env.NEXT_PUBLIC_BBUS_API_KEY
   const systemUserId = process.env.SYSTEM_USER_ID || ""
 
   const { apiKey, orderData } = await req.json()
   const { routeUid1c, carStateNumber, counterpartyInn } = orderData
 
-  if (!apiKey || apiKey !== bbusApiKey) {
+  if (!apiKey || (apiKey !== bbusApiKey && apiKey !== bbusApiKeyPublic)) {
     return NextResponse.json({ error: "API key is missing" }, { status: 400 })
   }
 

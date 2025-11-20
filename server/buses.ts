@@ -81,6 +81,29 @@ export async function getBuses(
   }
 }
 
+// GET action for the whole dictionary
+export async function getBusesDictionary(userId: string): Promise<Bus[]> {
+  // Fetch all buses with relations
+  const allBuses = await db.query.bus.findMany({
+    with: {
+      route: true, // Include route data
+    },
+  })
+
+  /*
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all buses",
+    }
+    await createLog(userId, logData)
+    */
+
+  return allBuses as Bus[]
+}
+
 // POST action
 export async function createBus(
   userId: string,

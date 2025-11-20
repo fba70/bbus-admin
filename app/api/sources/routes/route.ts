@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { updateRouteDictionary } from "@/server/orders"
 import { getOrganizations } from "@/server/clients"
+import { getRoutesDictionary } from "@/server/routes"
 
 interface Route {
   organizationId: string
@@ -107,6 +108,29 @@ export async function POST(req: NextRequest) {
   try {
     const updatedRoutes = await updateRouteDictionary(systemUserId, routesList)
     return NextResponse.json(updatedRoutes, { status: 200 })
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+// GET method
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const key = searchParams.get("key")
+
+  const userId = process.env.SYSTEM_USER_ID || ""
+  const bbusApiKey = process.env.BBUS_API_KEY
+  const bbusApiKeyPublic = process.env.NEXT_PUBLIC_BBUS_API_KEY
+
+  if (!key || (key !== bbusApiKey && key !== bbusApiKeyPublic)) {
+    return NextResponse.json({ error: "API key is missing" }, { status: 400 })
+  }
+
+  try {
+    const routes = await getRoutesDictionary(userId)
+    return NextResponse.json(routes)
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred"

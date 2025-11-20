@@ -81,6 +81,25 @@ export async function getRoutes(
   }
 }
 
+// GET all routes dictionary
+export async function getRoutesDictionary(userId: string): Promise<Route[]> {
+  // Fetch all routes
+  const allRoutes = await db.query.route.findMany()
+
+  /*
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all routes",
+    }
+    await createLog(userId, logData)
+    */
+
+  return allRoutes as Route[]
+}
+
 // POST action
 export async function createRoute(
   userId: string,

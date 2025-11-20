@@ -10,17 +10,11 @@ import {
   organization,
   Journey,
   journey,
+  TimeSlot,
+  timeSlot,
 } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
-
-/*
-{
-        with: {
-          organization: true,
-        },
-      }
-*/
 
 type JourneyWithoutOrganization = Omit<Journey, "route"> & {
   route: Omit<Route, "organization">
@@ -53,7 +47,7 @@ export async function getJourneysWithFilters(
     )
   })
 
-  return filteredJourneys
+  return filteredJourneys as JourneyWithoutOrganization[]
 }
 
 export async function getOrganizationsFromOrders(
@@ -76,11 +70,15 @@ export async function getOrganizationsFromOrders(
   return [record as Organization]
 }
 
-export async function getRoutesFromOrders(
-  userId: string,
-  organizationId: string, // Organization ID is now required
-  orderRouteId?: string // Make this parameter optional
-): Promise<Route[]> {
+export async function getRoutesFromOrders({
+  userId,
+  organizationId,
+  orderRouteId,
+}: {
+  userId: string
+  organizationId: string
+  orderRouteId?: string
+}): Promise<Route[]> {
   if (!organizationId) {
     throw new Error("Organization ID is required.")
   }
@@ -302,4 +300,44 @@ export async function updateRouteDictionary(
   await createLog(userId, logData)
 
   return validRoutesToInsert as Route[]
+}
+
+export async function getTimeSlots(
+  userId: string,
+  routeId?: string
+): Promise<TimeSlot[]> {
+  if (routeId) {
+    const allTimeSlots = await db.query.timeSlot.findMany({
+      where: eq(timeSlot.routeId, routeId),
+      with: {
+        route: true, // Include route data
+      },
+    })
+
+    return allTimeSlots as TimeSlot[]
+  } else {
+    const allTimeSlots = await db.query.timeSlot.findMany({
+      with: {
+        route: true, // Include route data
+      },
+    })
+
+    return allTimeSlots as TimeSlot[]
+  }
+}
+
+export async function createTimeSlots(
+  userId: string,
+  timeSlotData: Omit<TimeSlot, "id" | "createdAt" | "updatedAt">
+): Promise<TimeSlot[]> {
+  const newTimeSlot = {
+    ...timeSlotData,
+    id: crypto.randomUUID(), // Generate a unique ID
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+
+  await db.insert(timeSlot).values(newTimeSlot)
+
+  return [newTimeSlot as TimeSlot]
 }

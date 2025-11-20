@@ -17,6 +17,7 @@ export async function getRoutes(
       where: eq(route.id, id),
       with: {
         organization: true, // Include organization data
+        timeSlots: true, // Include timeSlots data
       },
     })
 
@@ -40,6 +41,10 @@ export async function getRoutes(
     // Fetch a specific route by routeId
     const record = await db.query.route.findFirst({
       where: eq(route.routeId, orderRouteId),
+      with: {
+        organization: true, // Include organization data
+        timeSlots: true, // Include timeSlots data
+      },
     })
 
     if (!record) {
@@ -63,6 +68,7 @@ export async function getRoutes(
     const allRoutes = await db.query.route.findMany({
       with: {
         organization: true, // Include organization data
+        timeSlots: true, // Include timeSlots data
       },
     })
 

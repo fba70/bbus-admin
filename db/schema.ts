@@ -125,6 +125,26 @@ export const invitation = pgTable("invitation", {
     .references(() => user.id, { onDelete: "cascade" }),
 })
 
+export const timeSlot = pgTable("time_slot", {
+  id: text("id").primaryKey(),
+  startTimestamp: timestamp("start_timestamp").notNull(),
+  endTimestamp: timestamp("end_timestamp").notNull(),
+  routeId: text("route_id").references(() => route.id, { onDelete: "cascade" }), // Optional reference to route
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+})
+
+export const timeSlotRelations = relations(timeSlot, ({ one }) => ({
+  route: one(route, {
+    fields: [timeSlot.routeId],
+    references: [route.id],
+  }),
+}))
+
+export type TimeSlot = typeof timeSlot.$inferSelect & {
+  route?: typeof route.$inferSelect
+}
+
 export const routeMode = pgEnum("route_mode", ["REGISTRATION", "AUTHORIZATION"])
 
 export const route = pgTable("route", {
@@ -140,15 +160,17 @@ export const route = pgTable("route", {
     .references(() => organization.id, { onDelete: "cascade" }),
 })
 
-export const routeRelations = relations(route, ({ one }) => ({
+export const routeRelations = relations(route, ({ one, many }) => ({
   organization: one(organization, {
     fields: [route.organizationId],
     references: [organization.id],
   }),
+  timeSlots: many(timeSlot),
 }))
 
 export type Route = typeof route.$inferSelect & {
   organization: typeof organization.$inferSelect
+  timeSlots: (typeof timeSlot.$inferSelect)[]
 }
 
 export const cardType = pgEnum("card_type", ["NFC", "RFID", "QR_CODE"])
@@ -353,4 +375,6 @@ export const schema = {
   applicationRelations,
   journeyRelations,
   logRelations,
+  timeSlot,
+  timeSlotRelations,
 }

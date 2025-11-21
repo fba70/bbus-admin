@@ -42,11 +42,7 @@ export const items = [
     url: "/journeys",
     icon: MapPinned,
   },
-  {
-    title: "Карты",
-    url: "/cards",
-    icon: IdCardLanyard,
-  },
+
   {
     title: "Автобусы",
     url: "/buses",
@@ -56,6 +52,11 @@ export const items = [
     title: "Маршруты",
     url: "/routes",
     icon: Route,
+  },
+  {
+    title: "Пропуска",
+    url: "/cards",
+    icon: IdCardLanyard,
   },
   {
     title: "Приложения",
@@ -69,35 +70,26 @@ export const items = [
   },
 ]
 
-/*
-{
-    title: "Истории",
-    url: "/settings",
-    icon: Settings,
-  },
-*/
-
 export function AppSidebar() {
   const pathname = usePathname()
 
   const [organization, setOrganization] = useState<string | null>(null)
   const [organizationSlug, setOrganizationSlug] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchOrganization = async () => {
-      try {
-        const organizations = await getOrganizations()
-        setOrganization(organizations[0]?.name || "Unknown Organization")
-        setOrganizationSlug(organizations[0]?.slug || "unknown-organization")
-      } catch (error) {
-        console.error("Failed to fetch organization data:", error)
-        setOrganization("Error Loading Organization")
-      }
+  const fetchOrganization = async () => {
+    try {
+      const organizations = await getOrganizations()
+      setOrganization(organizations[0]?.name || "Unknown Organization")
+      setOrganizationSlug(organizations[0]?.slug || "unknown-organization")
+    } catch (error) {
+      console.error("Failed to fetch organization data:", error)
+      setOrganization("Error Loading Organization")
     }
+  }
 
+  useEffect(() => {
     fetchOrganization()
   }, [])
-  // {organizations[0].name}
 
   return (
     <Sidebar className="flex flex-col h-screen">

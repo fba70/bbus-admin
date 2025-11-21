@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
-import { Route } from "@/db/schema"
+import { Route, Organization } from "@/db/schema"
 import {
   Select,
   SelectContent,
@@ -40,6 +40,7 @@ const formSchema = z.object({
   routeName: z.string().min(2).max(50),
   routeDescription: z.string().min(2).max(1000),
   routeMode: routeModeSchema,
+  organizationId: z.string().min(2).max(50),
 })
 
 export function CreateRouteForm({
@@ -52,8 +53,39 @@ export function CreateRouteForm({
   onSuccess: () => void
 }) {
   const [isLoading, setIsLoading] = useState(false)
+  const [organizations, setOrganizations] = useState<Organization[] | null>(
+    null
+  )
+  const [error, setError] = useState<string | null>(null)
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+
+  // Fetch clients/organizations on component mount
+  useEffect(() => {
+    fetchOrganizations()
+  }, [])
+
+  async function fetchOrganizations() {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const response = await axios.get(`${baseUrl}/api/clients`, {
+        params: { userId: userId },
+      })
+
+      const data: Organization[] = response.data
+      setOrganizations(data)
+      toast.success("Organizations fetched successfully.")
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred."
+      )
+      toast.error(`Error fetching organizations data: ${error}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -62,6 +94,7 @@ export function CreateRouteForm({
       routeName: "",
       routeDescription: "",
       routeMode: "REGISTRATION",
+      organizationId: "",
     },
   })
 
@@ -71,7 +104,6 @@ export function CreateRouteForm({
 
       const payload = {
         userId,
-        organizationId,
         ...values,
       }
 
@@ -167,6 +199,37 @@ export function CreateRouteForm({
                         <SelectItem value="AUTHORIZATION">
                           Авторизация
                         </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="organizationId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Организация</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите организацию" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {organizations?.map((organization) => (
+                          <SelectItem
+                            key={organization.id}
+                            value={organization.id}
+                          >
+                            {organization.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>

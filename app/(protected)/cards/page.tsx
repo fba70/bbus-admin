@@ -103,7 +103,7 @@ export default function AccessCards() {
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Номер карты
+          Номер пропуска
           <ArrowUpDown />
         </Button>
       ),
@@ -118,7 +118,7 @@ export default function AccessCards() {
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Имя на карте
+          Имя на пропуске
           <ArrowUpDown />
         </Button>
       ),
@@ -133,7 +133,7 @@ export default function AccessCards() {
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Тип карты
+          Тип пропуска
           <ArrowUpDown />
         </Button>
       ),
@@ -148,7 +148,7 @@ export default function AccessCards() {
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Статус карты
+          Статус пропуска
           <ArrowUpDown />
         </Button>
       ),
@@ -264,11 +264,11 @@ export default function AccessCards() {
 
   return (
     <div className="flex flex-col gap-2 items-center justify-start h-screen">
-      <h1 className="text-2xl font-bold my-4">Карты доступа</h1>
+      <h1 className="text-2xl font-bold my-4">Пропуска</h1>
 
       <div className="w-[95%] flex flex-row items-center gap-6 py-4">
         <Input
-          placeholder="Фильтр ID карт..."
+          placeholder="Фильтр ID пропусков..."
           value={(table.getColumn("cardId")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("cardId")?.setFilterValue(event.target.value)
@@ -286,7 +286,7 @@ export default function AccessCards() {
           className=""
         />
         <Input
-          placeholder="Фильтр типов карт..."
+          placeholder="Фильтр типам пропусков..."
           value={
             (table.getColumn("cardType")?.getFilterValue() as string) ?? ""
           }
@@ -296,7 +296,7 @@ export default function AccessCards() {
           className=""
         />
         <Input
-          placeholder="Фильтр статусов карт..."
+          placeholder="Фильтр статусов пропусков..."
           value={
             (table.getColumn("cardStatus")?.getFilterValue() as string) ?? ""
           }

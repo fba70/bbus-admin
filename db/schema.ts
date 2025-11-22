@@ -129,7 +129,9 @@ export const timeSlot = pgTable("time_slot", {
   id: text("id").primaryKey(),
   startTimestamp: timestamp("start_timestamp").notNull(),
   endTimestamp: timestamp("end_timestamp").notNull(),
-  routeId: text("route_id").references(() => route.id, { onDelete: "cascade" }), // Optional reference to route
+  routeId: text("route_id").references(() => route.id, { onDelete: "cascade" }),
+  route1cId: text("route_1c_id"),
+  busId: text("bus_id").references(() => bus.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 })
@@ -139,10 +141,15 @@ export const timeSlotRelations = relations(timeSlot, ({ one }) => ({
     fields: [timeSlot.routeId],
     references: [route.id],
   }),
+  bus: one(bus, {
+    fields: [timeSlot.busId],
+    references: [bus.id],
+  }),
 }))
 
 export type TimeSlot = typeof timeSlot.$inferSelect & {
   route?: typeof route.$inferSelect
+  bus?: typeof bus.$inferSelect
 }
 
 export const routeMode = pgEnum("route_mode", ["REGISTRATION", "AUTHORIZATION"])
@@ -219,7 +226,7 @@ export const bus = pgTable("bus", {
     .references(() => route.id, { onDelete: "cascade" }),
 })
 
-export const busRelations = relations(bus, ({ one }) => ({
+export const busRelations = relations(bus, ({ one, many }) => ({
   organization: one(organization, {
     fields: [bus.organizationId],
     references: [organization.id],
@@ -228,11 +235,13 @@ export const busRelations = relations(bus, ({ one }) => ({
     fields: [bus.routeId],
     references: [route.id],
   }),
+  timeSlots: many(timeSlot),
 }))
 
 export type Bus = typeof bus.$inferSelect & {
   organization: Organization
   route: Route
+  timeSlots: (typeof timeSlot.$inferSelect)[]
 }
 
 export const application = pgTable("application", {

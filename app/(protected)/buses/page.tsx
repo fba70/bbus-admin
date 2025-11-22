@@ -62,6 +62,11 @@ export default function Buses() {
   const [showFileUploadDialog, setShowFileUploadDialog] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<
+    Bus["timeSlots"] | null
+  >(null)
+  const [showTimeSlotsDialog, setShowTimeSlotsDialog] = useState(false)
+
   const { data: user, isPending } = authClient.useSession()
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
@@ -99,6 +104,8 @@ export default function Buses() {
       setLoading(false)
     }
   }
+
+  console.log("Buses data:", buses)
 
   async function handleFileUpload(file: File | null) {
     if (!file) {
@@ -202,6 +209,21 @@ export default function Buses() {
       header: "ID текущего маршрута",
       cell: ({ row }) => (
         <div className="capitalize">{row.original.route.routeId}</div>
+      ),
+    },
+    {
+      id: "timeSlots",
+      header: "Маршруты",
+      cell: ({ row }) => (
+        <Button
+          variant="link"
+          onClick={() => {
+            setSelectedTimeSlots(row.original.timeSlots) // Set the selected timeSlots
+            setShowTimeSlotsDialog(true) // Open the modal
+          }}
+        >
+          Маршруты
+        </Button>
       ),
     },
     {
@@ -326,6 +348,7 @@ export default function Buses() {
           }
           className=""
         />
+
         {user?.user.id && user.session.activeOrganizationId && (
           <>
             <CreateBusForm
@@ -389,6 +412,7 @@ export default function Buses() {
           </>
         )}
       </div>
+
       <div className="w-[95%] overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
@@ -489,6 +513,76 @@ export default function Buses() {
           </div>
         </div>
       </div>
+
+      <Dialog open={showTimeSlotsDialog} onOpenChange={setShowTimeSlotsDialog}>
+        <DialogContent className="max-h-[500px] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Список маршрутов за последние 2 дня:</DialogTitle>
+          </DialogHeader>
+          {selectedTimeSlots && selectedTimeSlots.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {selectedTimeSlots
+                .filter((slot) => {
+                  const now = new Date()
+                  const twoDaysAgo = new Date(
+                    now.getTime() - 2 * 24 * 60 * 60 * 1000
+                  )
+                  const start = new Date(slot.startTimestamp)
+                  const end = new Date(slot.endTimestamp)
+
+                  return start >= twoDaysAgo || end >= twoDaysAgo
+                })
+                .map((slot) => (
+                  <div
+                    key={slot.id}
+                    className="border rounded p-4 flex flex-col gap-2"
+                  >
+                    <p>
+                      <span className="text-sm text-gray-500">
+                        ID маршрута:
+                      </span>{" "}
+                      <span className="text-sm">{slot.routeId}</span>
+                    </p>
+                    <p>
+                      <span className="text-sm text-gray-500">
+                        ID маршрута 1С:
+                      </span>{" "}
+                      <span className="text-sm">{slot.route1cId}</span>
+                    </p>
+                    <p>
+                      <span className="text-sm text-gray-500">Начало:</span>{" "}
+                      <span className="text-sm">
+                        {new Intl.DateTimeFormat("ru-RU", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(slot.startTimestamp))}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-sm text-gray-500">Конец:</span>{" "}
+                      <span className="text-sm">
+                        {new Intl.DateTimeFormat("ru-RU", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(slot.endTimestamp))}
+                      </span>
+                    </p>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <p>Маршрутов за последние 2 дня не найдено</p>
+          )}
+          <DialogFooter>
+            <Button
+              variant="default"
+              onClick={() => setShowTimeSlotsDialog(false)}
+            >
+              Закрыть
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

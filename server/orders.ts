@@ -98,9 +98,11 @@ export async function getRoutesFromOrders({
 
   // Fetch a specific route by routeId for the given organization
   const record = await db.query.route.findFirst({
-    where: (fields) =>
-      eq(fields.routeId, orderRouteId) &&
-      eq(fields.organizationId, organizationId), // Combine conditions explicitly
+    where: (fields, operators) =>
+      operators.and(
+        eq(fields.routeId, orderRouteId), // Ensure routeId matches
+        eq(fields.organizationId, organizationId) // Ensure organizationId matches
+      ),
   })
 
   if (!record) {
@@ -114,8 +116,8 @@ export async function getRoutesFromOrders({
 
 export async function getBusesFromOrders(
   userId: string,
-  organizationId: string, // Organization ID is now required
-  orderBusPlateNumber?: string // Make this parameter optional
+  organizationId: string,
+  orderBusPlateNumber: string
 ): Promise<Bus[]> {
   if (!organizationId) {
     throw new Error("Organization ID is required.")
@@ -136,9 +138,11 @@ export async function getBusesFromOrders(
 
   // Fetch a specific bus by busPlateNumber for the given organization
   const record = await db.query.bus.findFirst({
-    where: (fields) =>
-      eq(fields.busPlateNumber, orderBusPlateNumber) &&
-      eq(fields.organizationId, organizationId), // Combine conditions explicitly
+    where: (fields, operators) =>
+      operators.and(
+        operators.ilike(fields.busPlateNumber, orderBusPlateNumber), // Case-insensitive comparison
+        eq(fields.organizationId, organizationId) // Ensure organizationId matches
+      ),
   })
 
   if (!record) {

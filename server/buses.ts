@@ -18,6 +18,7 @@ export async function getBuses(
       with: {
         organization: true, // Include organization data
         route: true, // Include route data
+        timeSlots: true, // Include timeSlots data
       },
     })
     if (!record) {
@@ -41,6 +42,7 @@ export async function getBuses(
     const record = await db.query.bus.findFirst({
       where: eq(bus.busPlateNumber, orderBusPlateNumber),
     })
+
     if (!record) {
       throw new Error(`Bus with plate number ${orderBusPlateNumber} not found.`)
     }
@@ -63,6 +65,7 @@ export async function getBuses(
       with: {
         organization: true, // Include organization data
         route: true, // Include route data
+        timeSlots: true, // Include timeSlots data
       },
     })
 

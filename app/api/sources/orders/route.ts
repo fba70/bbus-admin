@@ -46,10 +46,10 @@ export async function POST(req: NextRequest) {
   // console.log("carStateNumber:", carStateNumber)
   // console.log("counterpartyInn:", counterpartyInn)
   // console.log("Parsed startDate:", parsedStartDate)
-  //console.log("Parsed endDate:", parsedEndDate)
+  // console.log("Parsed endDate:", parsedEndDate)
 
   try {
-    // Step 0. Find the organization based on partyTaxId data
+    // Step 1. Find the organization based on partyTaxId data
     const organizations = await getOrganizationsFromOrders(
       systemUserId,
       counterpartyInn
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     // console.log("Found organization:", organization)
 
-    // Step 1: Find the route record using getRoutes
+    // Step 2: Find the route record using getRoutes
     const routes = await getRoutesFromOrders({
       userId: systemUserId,
       organizationId: organization.id,
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Step 3: Find the bus record using getBuses
+    // Step 3: Find the bus record using getBuses and carStateNumber
     const buses = await getBusesFromOrders(
       systemUserId,
       organization.id,
@@ -99,11 +99,13 @@ export async function POST(req: NextRequest) {
 
     // console.log("Found bus:", bus)
 
-    // Step 2: Create time slots for the route
+    // Step 4: Create time slots for the route
     const timeSlotsData = {
       routeId: route.id,
+      route1cId: route.routeId,
       startTimestamp: parsedStartDate,
       endTimestamp: parsedEndDate,
+      busId: bus.id,
     }
 
     const timeSlots = await createTimeSlots(systemUserId, timeSlotsData)

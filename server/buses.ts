@@ -21,6 +21,7 @@ export async function getBuses(
         timeSlots: true, // Include timeSlots data
       },
     })
+
     if (!record) {
       throw new Error(`Bus with ID ${id} not found.`)
     }
@@ -36,11 +37,28 @@ export async function getBuses(
     await createLog(userId, logData)
     */
 
-    return [record as Bus]
+    const latestTimeSlots = record.timeSlots
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ) // Sort by createdAt descending
+      .slice(0, 5) // Take the first 5 records
+
+    const transformedRecord = {
+      ...record,
+      timeSlots: latestTimeSlots, // Replace timeSlots with the latest 5
+    }
+
+    return [transformedRecord as Bus]
   } else if (orderBusPlateNumber) {
     // Fetch a specific bus by busPlateNumber
     const record = await db.query.bus.findFirst({
       where: eq(bus.busPlateNumber, orderBusPlateNumber),
+      with: {
+        organization: true, // Include organization data
+        route: true, // Include route data
+        timeSlots: true, // Include timeSlots data
+      },
     })
 
     if (!record) {
@@ -58,14 +76,26 @@ export async function getBuses(
     await createLog(userId, logData)
     */
 
-    return [record as Bus]
+    const latestTimeSlots = record.timeSlots
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ) // Sort by createdAt descending
+      .slice(0, 5) // Take the first 5 records
+
+    const transformedRecord = {
+      ...record,
+      timeSlots: latestTimeSlots, // Replace timeSlots with the latest 5
+    }
+
+    return [transformedRecord as Bus]
   } else {
     // Fetch all buses with relations
     const allBuses = await db.query.bus.findMany({
       with: {
         organization: true, // Include organization data
         route: true, // Include route data
-        timeSlots: true, // Include timeSlots data
+        timeSlots: true,
       },
     })
 
@@ -80,7 +110,22 @@ export async function getBuses(
     await createLog(userId, logData)
     */
 
-    return allBuses as Bus[]
+    // Transform allBuses to include only the latest 5 timeSlots for each bus
+    const allBusesLatestTimeSlots = allBuses.map((bus) => {
+      const latestTimeSlots = bus.timeSlots
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ) // Sort by createdAt descending
+        .slice(0, 5) // Take the first 5 records
+
+      return {
+        ...bus,
+        timeSlots: latestTimeSlots, // Replace timeSlots with the latest 5
+      }
+    })
+
+    return allBusesLatestTimeSlots as Bus[]
   }
 }
 

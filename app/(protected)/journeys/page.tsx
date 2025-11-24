@@ -87,6 +87,7 @@ export default function Journeys() {
     }
   }
 
+  // console.log(Intl.DateTimeFormat().resolvedOptions().locale)
   // console.log("Journeys data:", journeys)
 
   const columns: ColumnDef<Journey>[] = [
@@ -228,10 +229,15 @@ export default function Journeys() {
         </div>
       ),
       filterFn: (row, columnId, filterValue) => {
-        const organizationName = row.original.route.organization?.name || ""
-        return organizationName
-          .toLowerCase()
-          .includes(filterValue.toLowerCase())
+        const organizationName = row.original.route?.organization?.name || ""
+        const collator = new Intl.Collator("ru", { sensitivity: "base" }) // Adjust locale as needed
+        return (
+          collator.compare(
+            organizationName.toLowerCase(),
+            filterValue.toLowerCase()
+          ) === 0 ||
+          organizationName.toLowerCase().includes(filterValue.toLowerCase())
+        )
       },
     },
     {
@@ -256,20 +262,27 @@ export default function Journeys() {
   ]
 
   /*
-    {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) => {
-        if (!user || !user.user.id) {
-          return null
-        }
-        return (
-          <EditJourneyForm
-            journey={row.original}
-            userId={user.user.id}
-            onSuccess={fetchJourneys} // Pass the callback
-          />
-        )
+{
+      accessorKey: "organization",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Организация
+          <ArrowUpDown />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="capitalize">
+          {row.original.route?.organization?.name || "N/A"}
+        </div>
+      ),
+      filterFn: (row, columnId, filterValue) => {
+        const organizationName = row.original.route.organization?.name || ""
+        return organizationName
+          .toLowerCase()
+          .includes(filterValue.toLowerCase())
       },
     },
   */
@@ -300,16 +313,6 @@ export default function Journeys() {
   if (loading) {
     return <Loading />
   }
-
-  /*
-        {user?.user.id && user.session.activeOrganizationId && (
-          <CreateJourneyForm
-            userId={user.user.id}
-            organizationId={user.session.activeOrganizationId}
-            onSuccess={fetchJourneys} // Pass the callback
-          />
-        )}
-  */
 
   return (
     <div className="flex flex-col gap-2 items-center justify-start h-screen">

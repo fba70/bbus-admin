@@ -27,7 +27,7 @@ import { signIn } from "@/server/users"
 import { z } from "zod"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
@@ -42,11 +42,18 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const lastMethod = authClient.getLastUsedLoginMethod()
+  const [lastMethod, setLastMethod] = useState<string | null>(null) // Initialize as null
+
+  useEffect(() => {
+    // Fetch the last used login method on the client side
+    const method = authClient.getLastUsedLoginMethod()
+    setLastMethod(method)
+  }, [])
 
   const [isLoading, setIsLoading] = useState(false)
 
   const router = useRouter()
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

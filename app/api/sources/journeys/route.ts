@@ -68,11 +68,11 @@ export async function POST(req: NextRequest) {
     // Step 2: Find the route record using getRoutes
     const routes: Route[] = []
     for (const id of routeUid) {
-      const routeResults = await getRoutesFromOrders(
-        systemUserId,
-        organization.id,
-        id
-      )
+      const routeResults = await getRoutesFromOrders({
+        userId: systemUserId,
+        organizationId: organization.id,
+        orderRouteId: id, // Assuming 'id' is the route ID you want to fetch (or omit if fetching all)
+      })
       if (routeResults.length === 0) {
         throw new Error(`Route with routeId ${id} not found.`)
       }

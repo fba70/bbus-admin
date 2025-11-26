@@ -38,7 +38,7 @@ const cardStatusSchema = z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"])
 
 const formSchema = z.object({
   cardId: z.string().min(2).max(50),
-  nameOnCard: z.string().min(2).max(50),
+  nameOnCard: z.string(),
   cardType: cardTypeSchema,
   cardStatus: cardStatusSchema,
 })

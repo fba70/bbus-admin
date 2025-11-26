@@ -31,7 +31,11 @@ import Loading from "@/app/loading"
 import { Journey } from "@/db/schema"
 import { toast } from "sonner"
 import axios from "axios"
-// import { CreateJourneyForm } from "@/components/forms/create-journey-form"
+
+type JourneyTimeStampFilter = {
+  startDate?: string
+  endDate?: string
+}
 
 export default function Journeys() {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -46,7 +50,7 @@ export default function Journeys() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [pageSize, setPageSize] = React.useState(10) // Default items per page
+  const [pageSize, setPageSize] = React.useState(20) // Default items per page
   const [pageIndex, setPageIndex] = React.useState(0) // Default page index
 
   const { data: user, isPending } = authClient.useSession()
@@ -90,6 +94,31 @@ export default function Journeys() {
   // console.log(Intl.DateTimeFormat().resolvedOptions().locale)
   // console.log("Journeys data:", journeys)
 
+  /*
+filterFn: (row, columnId, filterValue) => {
+        const journeyTimeStamp = new Date(row.getValue(columnId))
+        const { startDate, endDate } = filterValue || {}
+
+        if (startDate) {
+          const startDateTime = new Date(startDate)
+          startDateTime.setHours(0, 0, 0, 0) // Set time to 00:00:00
+          if (journeyTimeStamp < startDateTime) {
+            return false
+          }
+        }
+
+        if (endDate) {
+          const endDateTime = new Date(endDate)
+          endDateTime.setHours(23, 59, 59, 999) // Set time to 23:59:59
+          if (journeyTimeStamp > endDateTime) {
+            return false
+          }
+        }
+
+        return true
+      },
+  */
+
   const columns: ColumnDef<Journey>[] = [
     {
       accessorKey: "id",
@@ -118,6 +147,32 @@ export default function Journeys() {
           }).format(new Date(row.getValue("journeyTimeStamp")))}
         </div>
       ),
+      filterFn: (row, columnId, filterValue) => {
+        const journeyTimeStamp = new Date(row.getValue(columnId))
+        const { startDate, endDate } = filterValue || {}
+
+        // Parse and normalize startDate
+        const startDateTime = startDate ? new Date(startDate) : null
+        if (startDateTime) {
+          startDateTime.setHours(0, 0, 0, 0) // Set time to 00:00:00
+        }
+
+        // Parse and normalize endDate
+        const endDateTime = endDate ? new Date(endDate) : null
+        if (endDateTime) {
+          endDateTime.setHours(23, 59, 59, 999) // Set time to 23:59:59
+        }
+
+        // Check if journeyTimeStamp falls within the range
+        if (startDateTime && journeyTimeStamp < startDateTime) {
+          return false
+        }
+        if (endDateTime && journeyTimeStamp > endDateTime) {
+          return false
+        }
+
+        return true
+      },
     },
     {
       accessorKey: "journeyStatus",
@@ -161,7 +216,9 @@ export default function Journeys() {
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="capitalize">{row.original.accessCard.cardId}</div>
+        <div className="capitalize truncate max-w-[200px]">
+          {row.original.accessCard.cardId}
+        </div>
       ),
     },
     {
@@ -261,32 +318,6 @@ export default function Journeys() {
     },
   ]
 
-  /*
-{
-      accessorKey: "organization",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Организация
-          <ArrowUpDown />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="capitalize">
-          {row.original.route?.organization?.name || "N/A"}
-        </div>
-      ),
-      filterFn: (row, columnId, filterValue) => {
-        const organizationName = row.original.route.organization?.name || ""
-        return organizationName
-          .toLowerCase()
-          .includes(filterValue.toLowerCase())
-      },
-    },
-  */
-
   const table = useReactTable({
     data: journeys || [],
     columns,
@@ -381,6 +412,64 @@ export default function Journeys() {
           }
           className=""
         />
+      </div>
+      <div className="w-[95%] flex flex-row items-center justify-between ">
+        <div className="flex flex-row items-center gap-2">
+          <Input
+            type="date"
+            placeholder="Start Date"
+            value={
+              (
+                table.getColumn("journeyTimeStamp")?.getFilterValue() as {
+                  startDate?: string
+                  endDate?: string
+                }
+              )?.startDate || ""
+            }
+            onChange={(event) => {
+              const newStartDate = event.target.value
+              table
+                .getColumn("journeyTimeStamp")
+                ?.setFilterValue(
+                  (prev: JourneyTimeStampFilter | undefined) => ({
+                    ...(prev || {}),
+                    startDate: newStartDate,
+                  })
+                )
+            }}
+          />
+          <Input
+            type="date"
+            placeholder="End Date"
+            value={
+              (
+                table.getColumn("journeyTimeStamp")?.getFilterValue() as {
+                  startDate?: string
+                  endDate?: string
+                }
+              )?.endDate || ""
+            }
+            onChange={(event) => {
+              const newEndDate = event.target.value
+              table
+                .getColumn("journeyTimeStamp")
+                ?.setFilterValue(
+                  (prev: JourneyTimeStampFilter | undefined) => ({
+                    ...(prev || {}),
+                    endDate: newEndDate,
+                  })
+                )
+            }}
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              table.getColumn("journeyTimeStamp")?.setFilterValue(undefined)
+            }}
+          >
+            Сбросить фильтр
+          </Button>
+        </div>
 
         <Button
           variant="default"
@@ -400,58 +489,61 @@ export default function Journeys() {
             }
           }}
         >
-          Export Journeys
+          Выгрузить поездки в JSON
         </Button>
       </div>
-      <div className="w-[95%] overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+
+      <div className="w-[95%] overflow-hidden rounded-md border mt-4">
+        <div className="max-h-[75vh] overflow-y-auto">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <div className="flex items-center justify-end space-x-2 py-4">
@@ -494,7 +586,7 @@ export default function Journeys() {
               onChange={(e) => setPageSize(Number(e.target.value))}
               className="border rounded px-2 py-1 text-sm"
             >
-              {[2, 5, 10, 20, 50].map((size) => (
+              {[20, 50, 100].map((size) => (
                 <option key={size} value={size}>
                   {size}
                 </option>

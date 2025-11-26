@@ -2,7 +2,8 @@
 
 import { db } from "@/db/drizzle"
 import { AccessCard, accessCard } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { getOrganizations } from "@/server/clients"
+import { eq, and, inArray } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
 // GET action
@@ -60,6 +61,33 @@ export async function getAccessCards(
   }
 }
 
+// GET action - Fetch access cards by counterpartyInn (taxId)
+export async function getAccessCardsByTaxId(
+  userId: string,
+  counterpartyInn: string
+): Promise<AccessCard[]> {
+  // Step 1: Fetch all organizations directly
+  const allOrganizations = await db.query.organization.findMany()
+
+  // Step 2: Find organization with taxId equal to counterpartyInn
+  const organization = allOrganizations.find((org) => {
+    const metadata = org.metadata ? JSON.parse(org.metadata) : {}
+    return metadata.taxId === counterpartyInn
+  })
+
+  if (!organization) {
+    console.warn(`Organization with taxId ${counterpartyInn} not found.`)
+    return [] // Return empty array if no organization found
+  }
+
+  // Step 3: Fetch access cards belonging to the organization
+  const accessCards = await db.query.accessCard.findMany({
+    where: eq(accessCard.organizationId, organization.id),
+  })
+
+  return accessCards as AccessCard[]
+}
+
 // POST action
 export async function createAccessCard(
   userId: string,
@@ -84,6 +112,99 @@ export async function createAccessCard(
   await createLog(userId, logData)
 
   return newAccesscard
+}
+
+// POST action
+export async function loadAccessCards(
+  userId: string,
+  sourceData: Array<{
+    counterpartyInn: string
+    passNumber: string
+    fullName: string
+    passStatus?: string
+    passType?: string
+  }>
+): Promise<AccessCard[]> {
+  const importedCards: AccessCard[] = []
+
+  const allOrganizations = await getOrganizations(userId) // Assumes getOrganizations can fetch all when no inn is provided; adjust if needed
+
+  for (const item of sourceData) {
+    // Step 1: Find organization by counterpartyInn (taxId) from the fetched list
+    const organization = allOrganizations.find((org) => {
+      const metadata = org.metadata ? JSON.parse(org.metadata) : {}
+      return metadata.taxId === item.counterpartyInn
+    })
+
+    if (!organization) {
+      console.warn(
+        `Нет клиента с ИНН: ${item.counterpartyInn}. Пропускаем импорт карты с номером: ${item.passNumber}`
+      )
+      continue
+    }
+
+    const organizationId = organization.id
+
+    // Step 2: Map and normalize fields
+    const cardId = item.passNumber // Direct map
+    const nameOnCard = item.fullName || null // Direct map, allow empty
+    const cardStatus = item.passStatus
+      ? (item.passStatus.toUpperCase() as "ACTIVE" | "INACTIVE" | "SUSPENDED")
+      : "ACTIVE"
+    const cardType = item.passType
+      ? (item.passType.toUpperCase() as "NFC" | "RFID" | "QR_CODE")
+      : "NFC"
+
+    // Step 3: Check for existing card with same cardId and organizationId
+    const existingCards = await db
+      .select()
+      .from(accessCard)
+      .where(
+        and(
+          eq(accessCard.cardId, cardId),
+          eq(accessCard.organizationId, organizationId)
+        )
+      )
+      .limit(1)
+
+    const existingCard = existingCards[0]
+
+    if (existingCard) {
+      console.warn(
+        `Карта с номером ${cardId} уже существует для организации ${organizationId}. Пропускаем импорт.`
+      )
+      continue // Skip to next item
+    }
+
+    // Step 4: Create the card object
+    const newCard: Omit<AccessCard, "organization"> = {
+      id: crypto.randomUUID(),
+      cardId,
+      nameOnCard,
+      cardType,
+      cardStatus,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      organizationId,
+    }
+
+    // Step 5: Insert into DB
+    await db.insert(accessCard).values(newCard)
+
+    // Step 6: Log the import
+    const logData: LogInput = {
+      userId,
+      applicationId: null,
+      logActionType: "CREATE",
+      timeStamp: new Date(),
+      metadata: `Imported access card with cardId: ${cardId}`,
+    }
+    await createLog(userId, logData)
+
+    importedCards.push(newCard as AccessCard)
+  }
+
+  return importedCards
 }
 
 // PATCH action
@@ -121,4 +242,46 @@ export async function updateAccessCard(
   await createLog(userId, logData)
 
   return updatedAccessCard as AccessCard
+}
+
+// DELETE action (bulk delete by IDs)
+export async function deleteAccessCards(
+  userId: string,
+  ids: string[]
+): Promise<{ deletedCount: number; notFoundIds: string[] }> {
+  if (!ids || ids.length === 0) {
+    throw new Error("No IDs provided for deletion.")
+  }
+
+  // Step 1: Check which IDs exist in the database
+  const existingRecords = await db
+    .select({ id: accessCard.id })
+    .from(accessCard)
+    .where(inArray(accessCard.id, ids))
+
+  const existingIds = existingRecords.map((record) => record.id)
+  const notFoundIds = ids.filter((id) => !existingIds.includes(id))
+
+  if (existingIds.length === 0) {
+    throw new Error("No access cards found with the provided IDs.")
+  }
+
+  // Step 2: Delete the existing records
+  await db.delete(accessCard).where(inArray(accessCard.id, existingIds))
+
+  // Step 3: Log the deletion
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "UPDATE", // Assuming you have "DELETE" in your logActionType enum; adjust if needed
+    timeStamp: new Date(),
+    metadata: `Deleted ${existingIds.length} access card(s) with IDs: ${existingIds.join(", ")}`,
+  }
+  await createLog(userId, logData)
+
+  // Step 4: Return summary
+  return {
+    deletedCount: existingIds.length,
+    notFoundIds,
+  }
 }

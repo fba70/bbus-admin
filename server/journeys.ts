@@ -9,7 +9,7 @@ import {
   Route,
   route,
 } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, desc } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
 // GET action
@@ -62,6 +62,7 @@ export async function getJourneys(
         },
         application: true,
       },
+      orderBy: desc(journey.createdAt),
     })
 
     /*
@@ -98,17 +99,20 @@ export async function createJourney(
   const journeyRoute = await db.query.route.findFirst({
     where: eq(route.id, newJourney.routeId),
   })
+
   if (!journeyRoute) {
     throw new Error(`Route with ID ${newJourney.routeId} not found.`)
   }
 
+  // App check if the user card is in the cards dictionary, if not it adds newCard data to the journey
+  // If new card comes we add it to the dictionary with INACTIVE status
   if (journeyData.newCardId || journeyData.newCardType) {
     const newAccesscard: typeof accessCard.$inferInsert = {
       id: crypto.randomUUID(), // Generate a unique ID
       cardId: journeyData.newCardId!,
       nameOnCard: "",
       cardType: journeyData.newCardType!,
-      cardStatus: "ACTIVE",
+      cardStatus: "INACTIVE",
       organizationId: journeyRoute.organizationId,
       createdAt: new Date(),
       updatedAt: new Date(),

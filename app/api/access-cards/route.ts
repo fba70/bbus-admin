@@ -4,6 +4,7 @@ import {
   getAccessCards,
   createAccessCard,
   updateAccessCard,
+  deleteAccessCards,
 } from "@/server/access-cards"
 
 // GET method
@@ -70,6 +71,24 @@ export async function PATCH(req: NextRequest) {
   try {
     const updatedCard = await updateAccessCard(userId, id, cardData)
     return NextResponse.json(updatedCard)
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+// DELETE handler
+export async function DELETE(request: Request) {
+  const session = await getServerSession()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  try {
+    const { userId, ids } = await request.json()
+    const result = await deleteAccessCards(userId, ids)
+    return Response.json({ message: "Deletion successful", ...result })
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred"

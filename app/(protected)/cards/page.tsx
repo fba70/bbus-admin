@@ -33,6 +33,7 @@ import { toast } from "sonner"
 import axios from "axios"
 import { CreateCardForm } from "@/components/forms/create-card-form"
 import { EditCardForm } from "@/components/forms/edit-card-form"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function AccessCards() {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -47,7 +48,7 @@ export default function AccessCards() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [pageSize, setPageSize] = React.useState(10) // Default items per page
+  const [pageSize, setPageSize] = React.useState(20) // Default items per page
   const [pageIndex, setPageIndex] = React.useState(0) // Default page index
 
   const { data: user, isPending } = authClient.useSession()
@@ -90,11 +91,71 @@ export default function AccessCards() {
 
   // console.log("Access Cards data:", accessCards)
 
+  const handleDeleteSelected = async () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    if (selectedRows.length === 0) {
+      toast.error("No rows selected for deletion.")
+      return
+    }
+
+    const selectedIds = selectedRows.map((row) => row.original.id)
+
+    try {
+      if (!user || !user.user.id) {
+        throw new Error("User is not authenticated.")
+      }
+
+      const response = await axios.delete(`${baseUrl}/api/access-cards`, {
+        data: {
+          userId: user.user.id,
+          ids: selectedIds,
+        },
+      })
+
+      const { deletedCount, notFoundIds } = response.data
+
+      // Refetch cards to update the UI
+      await fetchCards()
+
+      // Reset selection
+      setRowSelection({})
+
+      toast.success(`Successfully deleted ${deletedCount} card(s).`)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred."
+      )
+      toast.error(`Error fetching access cards data: ${err}`)
+    }
+  }
+
   const columns: ColumnDef<AccessCard>[] = [
     {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => <div className="hidden">{row.getValue("id")}</div>,
+    },
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: "cardId",
@@ -316,62 +377,74 @@ export default function AccessCards() {
           className=""
         />
         {user?.user.id && user.session.activeOrganizationId && (
-          <CreateCardForm
-            userId={user.user.id}
-            organizationId={user.session.activeOrganizationId}
-            onSuccess={fetchCards} // Pass the callback
-          />
+          <>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteSelected}
+              disabled={table.getFilteredSelectedRowModel().rows.length === 0}
+            >
+              Удалить ({table.getFilteredSelectedRowModel().rows.length})
+              пропусков
+            </Button>
+            <CreateCardForm
+              userId={user.user.id}
+              organizationId={user.session.activeOrganizationId}
+              onSuccess={fetchCards} // Pass the callback
+            />
+          </>
         )}
       </div>
       <div className="w-[95%] overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+        <div className="max-h-[80vh] overflow-y-auto">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <div className="flex items-center justify-end space-x-2 py-4">
@@ -414,7 +487,7 @@ export default function AccessCards() {
               onChange={(e) => setPageSize(Number(e.target.value))}
               className="border rounded px-2 py-1 text-sm"
             >
-              {[2, 5, 10, 20, 50].map((size) => (
+              {[20, 50, 100].map((size) => (
                 <option key={size} value={size}>
                   {size}
                 </option>

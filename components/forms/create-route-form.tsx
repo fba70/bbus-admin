@@ -31,6 +31,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Check, ChevronsUpDown } from "lucide-react"
 import axios from "axios"
 
 const routeModeSchema = z.enum(["REGISTRATION", "AUTHORIZATION"])
@@ -57,6 +71,8 @@ export function CreateRouteForm({
     null
   )
   const [error, setError] = useState<string | null>(null)
+
+  const [open, setOpen] = useState(false)
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 
@@ -211,6 +227,84 @@ export function CreateRouteForm({
               control={form.control}
               name="organizationId"
               render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Организация</FormLabel>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={open}
+                          className="w-full justify-between"
+                        >
+                          {field.value
+                            ? organizations?.find(
+                                (org) => org.id === field.value
+                              )?.name
+                            : "Выберите организацию"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder="Поиск организации..." />
+                        <CommandList>
+                          <CommandEmpty>Организация не найдена.</CommandEmpty>
+                          <CommandGroup>
+                            {organizations?.map((organization) => (
+                              <CommandItem
+                                key={organization.id}
+                                value={organization.name}
+                                onSelect={() => {
+                                  field.onChange(organization.id)
+                                  setOpen(false)
+                                }}
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${
+                                    field.value === organization.id
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  }`}
+                                />
+                                {organization.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              disabled={isLoading}
+              type="submit"
+              className="mx-auto block"
+            >
+              {isLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                "Создать маршрут"
+              )}
+            </Button>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/*
+<FormField
+              control={form.control}
+              name="organizationId"
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Организация</FormLabel>
                   <FormControl>
@@ -238,20 +332,4 @@ export function CreateRouteForm({
               )}
             />
 
-            <Button
-              disabled={isLoading}
-              type="submit"
-              className="mx-auto block"
-            >
-              {isLoading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                "Создать маршрут"
-              )}
-            </Button>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  )
-}
+*/

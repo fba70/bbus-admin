@@ -87,7 +87,7 @@ export const getUsers = async (organizationId: string) => {
       where: eq(member.organizationId, organizationId),
     })
 
-    console.log("Members:", members)
+    // console.log("Members:", members)
 
     // Fetch users whose IDs are in the list of member.userId
     const users = await db.query.user.findMany({
@@ -97,7 +97,7 @@ export const getUsers = async (organizationId: string) => {
       ),
     })
 
-    console.log("Users:", users)
+    // console.log("Users:", users)
 
     return users
   } catch (error) {

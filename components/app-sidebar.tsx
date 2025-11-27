@@ -8,10 +8,10 @@ import {
   Smartphone,
   Home,
   MapPinned,
-  FileSpreadsheet,
   Settings,
   Building,
   Users,
+  CalendarArrowUp,
 } from "lucide-react"
 import Image from "next/image"
 import {
@@ -57,6 +57,11 @@ export const items = [
     title: "Пропуска",
     url: "/cards",
     icon: IdCardLanyard,
+  },
+  {
+    title: "Ордеры",
+    url: "/orders",
+    icon: CalendarArrowUp,
   },
   {
     title: "Приложения",

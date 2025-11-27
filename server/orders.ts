@@ -13,7 +13,7 @@ import {
   TimeSlot,
   timeSlot,
 } from "@/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
 type JourneyWithoutOrganization = Omit<Journey, "route"> & {
@@ -320,13 +320,25 @@ export async function updateRouteDictionary(
 
 export async function getTimeSlots(
   userId: string,
-  routeId?: string
+  routeId?: string,
+  timeSlotId?: string
 ): Promise<TimeSlot[]> {
-  if (routeId) {
+  if (timeSlotId) {
+    const slot = await db.query.timeSlot.findFirst({
+      where: eq(timeSlot.id, timeSlotId),
+      with: {
+        route: true,
+        bus: true,
+      },
+    })
+
+    return slot ? [slot as TimeSlot] : []
+  } else if (routeId) {
     const allTimeSlots = await db.query.timeSlot.findMany({
       where: eq(timeSlot.routeId, routeId),
       with: {
-        route: true, // Include route data
+        route: true,
+        bus: true,
       },
     })
 
@@ -334,7 +346,8 @@ export async function getTimeSlots(
   } else {
     const allTimeSlots = await db.query.timeSlot.findMany({
       with: {
-        route: true, // Include route data
+        route: true,
+        bus: true,
       },
     })
 
@@ -356,4 +369,64 @@ export async function createTimeSlots(
   await db.insert(timeSlot).values(newTimeSlot)
 
   return [newTimeSlot as TimeSlot]
+}
+
+export async function createOrUpdateTimeSlot(
+  orderId: string,
+  timeSlotData: Omit<TimeSlot, "id" | "createdAt" | "updatedAt">
+): Promise<TimeSlot> {
+  try {
+    // Find the existing timeSlot by orderId
+    const existingTimeSlot = await db.query.timeSlot.findFirst({
+      where: eq(timeSlot.orderId, orderId),
+    })
+
+    if (!existingTimeSlot) {
+      // Create new timeSlot
+      const newTimeSlot = {
+        ...timeSlotData,
+        id: crypto.randomUUID(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+
+      await db.insert(timeSlot).values(newTimeSlot)
+
+      return newTimeSlot as TimeSlot
+    } else {
+      // Update existing timeSlot
+      const updateData = {
+        ...timeSlotData,
+        updatedAt: new Date(),
+      }
+
+      await db
+        .update(timeSlot)
+        .set(updateData)
+        .where(eq(timeSlot.orderId, orderId))
+
+      // Fetch and return the updated timeSlot
+      const updatedTimeSlot = await db.query.timeSlot.findFirst({
+        where: eq(timeSlot.orderId, orderId),
+      })
+
+      return updatedTimeSlot as TimeSlot
+    }
+  } catch (error) {
+    console.error("Error creating or updating timeSlot:", error)
+    throw error
+  }
+}
+
+export async function deleteTimeSlots(ids: string[]): Promise<void> {
+  try {
+    if (!ids || ids.length === 0) {
+      throw new Error("No IDs provided for deletion")
+    }
+
+    await db.delete(timeSlot).where(inArray(timeSlot.id, ids))
+  } catch (error) {
+    console.error("Error deleting timeSlots:", error)
+    throw error
+  }
 }

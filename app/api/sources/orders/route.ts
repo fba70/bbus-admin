@@ -5,8 +5,10 @@ import {
   getOrganizationsFromOrders,
   updateBusFromOrders,
   getTimeSlots,
-  createTimeSlots,
+  createOrUpdateTimeSlot,
+  deleteTimeSlots,
 } from "@/server/orders"
+import { TimeSlot } from "@/db/schema"
 
 function parseDateString(dateString: string): Date {
   const [datePart, timePart] = dateString.split(" ")
@@ -31,8 +33,14 @@ export async function POST(req: NextRequest) {
   const systemUserId = process.env.SYSTEM_USER_ID || ""
 
   const { apiKey, orderData } = await req.json()
-  const { routeUid1c, carStateNumber, counterpartyInn, startDate, endDate } =
-    orderData
+  const {
+    routeUid1c,
+    carStateNumber,
+    counterpartyInn,
+    orderUid1c,
+    startDate,
+    endDate,
+  } = orderData
 
   if (!apiKey || (apiKey !== bbusApiKey && apiKey !== bbusApiKeyPublic)) {
     return NextResponse.json({ error: "API key is missing" }, { status: 400 })
@@ -105,10 +113,11 @@ export async function POST(req: NextRequest) {
       route1cId: route.routeId,
       startTimestamp: parsedStartDate,
       endTimestamp: parsedEndDate,
+      orderId: orderUid1c,
       busId: bus.id,
     }
 
-    const timeSlots = await createTimeSlots(systemUserId, timeSlotsData)
+    const timeSlots = await createOrUpdateTimeSlot(orderUid1c, timeSlotsData)
 
     // console.log("Created time slots:", timeSlots)
 
@@ -131,5 +140,95 @@ export async function POST(req: NextRequest) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred"
     return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+// GET orders
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const routeId = searchParams.get("routeId") || undefined
+    const timeSlotId = searchParams.get("id") || undefined
+
+    if (timeSlotId) {
+      // Get specific timeSlot by ID
+      const timeSlots = await getTimeSlots("system", routeId, timeSlotId)
+      if (timeSlots.length === 0) {
+        return NextResponse.json(
+          { error: "TimeSlot not found" },
+          { status: 404 }
+        )
+      }
+      return NextResponse.json(timeSlots)
+    } else {
+      // Get all timeSlots, optionally filtered by routeId
+      const timeSlots = await getTimeSlots("system", routeId || undefined)
+      return NextResponse.json(timeSlots)
+    }
+  } catch (error) {
+    console.error("Error fetching timeSlots:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE method
+export async function DELETE(request: NextRequest) {
+  try {
+    const { ids }: { ids: string[] } = await request.json()
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "Invalid or missing IDs array" },
+        { status: 400 }
+      )
+    }
+
+    // Call the server function
+    await deleteTimeSlots(ids)
+
+    return NextResponse.json(
+      { message: `Deleted ${ids.length} timeSlot(s)` },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error("Error deleting timeSlots:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH method
+export async function PATCH(request: NextRequest) {
+  try {
+    const {
+      timeSlotData,
+    }: { timeSlotData: Omit<TimeSlot, "id" | "createdAt" | "updatedAt"> } =
+      await request.json()
+
+    if (!timeSlotData || !timeSlotData.orderId) {
+      return NextResponse.json(
+        { error: "Invalid timeSlot data or missing orderId" },
+        { status: 400 }
+      )
+    }
+
+    // Call the server function to create or update
+    const result = await createOrUpdateTimeSlot(
+      timeSlotData.orderId,
+      timeSlotData
+    )
+
+    return NextResponse.json(result, { status: 200 })
+  } catch (error) {
+    console.error("Error updating timeSlot:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }

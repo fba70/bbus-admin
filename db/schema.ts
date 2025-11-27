@@ -131,6 +131,7 @@ export const timeSlot = pgTable("time_slot", {
   endTimestamp: timestamp("end_timestamp").notNull(),
   routeId: text("route_id").references(() => route.id, { onDelete: "cascade" }),
   route1cId: text("route_1c_id"),
+  orderId: text("order_id"),
   busId: text("bus_id").references(() => bus.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),

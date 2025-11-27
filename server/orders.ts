@@ -136,6 +136,7 @@ export async function getBusesFromOrders(
     return records as Bus[]
   }
 
+  /*
   // Fetch a specific bus by busPlateNumber for the given organization
   const record = await db.query.bus.findFirst({
     where: (fields, operators) =>
@@ -149,6 +150,17 @@ export async function getBusesFromOrders(
     throw new Error(
       `Bus with plate number ${orderBusPlateNumber} not found for organizationId ${organizationId}.`
     )
+  }
+  */
+
+  // Fetch a specific bus by busPlateNumber (ignoring organizationId)
+  const record = await db.query.bus.findFirst({
+    where: (fields, operators) =>
+      operators.ilike(fields.busPlateNumber, orderBusPlateNumber), // Case-insensitive comparison
+  })
+
+  if (!record) {
+    throw new Error(`Bus with plate number ${orderBusPlateNumber} not found.`)
   }
 
   return [record as Bus]

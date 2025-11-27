@@ -5,7 +5,7 @@ import { Button } from "./ui/button"
 import { useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2, Trash } from "lucide-react"
 import type { Role } from "@/db/schema"
 
 export default function MembersTableAction({ memberId }: { memberId: string }) {
@@ -40,7 +40,7 @@ export default function MembersTableAction({ memberId }: { memberId: string }) {
         variant="destructive"
         disabled={isLoading}
       >
-        {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Удалить"}
+        {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Trash />}
       </Button>
     </div>
   )

@@ -105,7 +105,7 @@ export default function Buses() {
     }
   }
 
-  console.log("Buses data:", buses)
+  // console.log("Buses data:", buses)
 
   async function handleFileUpload(file: File | null) {
     if (!file) {

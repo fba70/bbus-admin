@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -29,12 +30,15 @@ import { unauthorized } from "next/navigation"
 import { Member } from "@/db/schema"
 import { ChangeRoleForm } from "@/components/forms/change-role-form"
 import MembersTableAction from "./members-table-action"
+import { ResetPasswordDialogForm } from "@/components/forms/reset-password-dialog-form"
+import { EditUserForm } from "./forms/edit-user-form"
+import { getOrganizationBySlug } from "@/server/organizations"
 
 interface MembersTableProps {
-  members: Member[]
+  slug: string // New prop
 }
 
-export default function MembersTable({ members }: MembersTableProps) {
+export default function MembersTable({ slug }: MembersTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -45,6 +49,25 @@ export default function MembersTable({ members }: MembersTableProps) {
 
   const [pageSize, setPageSize] = React.useState(20) // Default items per page
   const [pageIndex, setPageIndex] = React.useState(0) // Default page index
+
+  const [members, setMembers] = useState<Member[]>([]) // Local state for members
+  const [loading, setLoading] = useState(true)
+
+  const fetchMembers = async () => {
+    setLoading(true)
+    try {
+      const organization = await getOrganizationBySlug(slug)
+      setMembers(organization?.members || [])
+    } catch (error) {
+      console.error("Error fetching members:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchMembers()
+  }, [slug])
 
   const { data: user, isPending } = authClient.useSession()
 
@@ -135,6 +158,14 @@ export default function MembersTable({ members }: MembersTableProps) {
               memberId={row.original.id}
               currentRole={row.original.role}
             />
+            <ResetPasswordDialogForm />
+            <EditUserForm
+              userId={row.original.user.id}
+              name={row.original.user.name}
+              email={row.original.user.email}
+              emailVerified={row.original.user.emailVerified}
+              onUserUpdated={fetchMembers}
+            />
             <MembersTableAction memberId={row.original.id} />
           </div>
         )
@@ -166,7 +197,7 @@ export default function MembersTable({ members }: MembersTableProps) {
   })
 
   return (
-    <div className="flex flex-col gap-2 items-center justify-start h-screen">
+    <div className="flex flex-col gap-2 items-center justify-start">
       <div className="w-[95%] flex flex-row items-center gap-6 py-4">
         <Input
           placeholder="Фильтр по имени пользователя..."

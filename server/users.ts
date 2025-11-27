@@ -105,3 +105,51 @@ export const getUsers = async (organizationId: string) => {
     return []
   }
 }
+
+export const getAllUsers = async () => {
+  try {
+    const users = await db.query.user.findMany()
+    return users
+  } catch (error) {
+    console.error("Error fetching all users:", error)
+    return []
+  }
+}
+
+export const updateUser = async (
+  userId: string,
+  name: string,
+  email: string,
+  emailVerified: boolean
+) => {
+  try {
+    // 1. Find the user by userId to ensure they exist
+    const existingUser = await db.query.user.findFirst({
+      where: eq(user.id, userId),
+    })
+
+    if (!existingUser) {
+      throw new Error(`User with ID ${userId} not found.`)
+    }
+
+    // 2. Prepare the update data (patch the provided fields)
+    const updateData = {
+      name,
+      email,
+      emailVerified,
+    }
+
+    // Perform the update
+    await db.update(user).set(updateData).where(eq(user.id, userId))
+
+    // Fetch and return the updated user
+    const updatedUser = await db.query.user.findFirst({
+      where: eq(user.id, userId),
+    })
+
+    return updatedUser
+  } catch (error) {
+    console.error("Error updating user:", error)
+    throw error // Re-throw to let the caller handle it
+  }
+}

@@ -64,16 +64,19 @@ export const items = [
     icon: CalendarArrowUp,
   },
   {
-    title: "Приложения",
-    url: "/apps",
-    icon: Smartphone,
-  },
-  {
     title: "Клиенты",
     url: "/clients",
     icon: Building,
   },
 ]
+
+/*
+{
+    title: "Приложения",
+    url: "/apps",
+    icon: Smartphone,
+  },
+*/
 
 export function AppSidebar() {
   const pathname = usePathname()

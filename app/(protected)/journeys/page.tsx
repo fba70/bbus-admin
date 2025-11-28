@@ -94,31 +94,6 @@ export default function Journeys() {
   // console.log(Intl.DateTimeFormat().resolvedOptions().locale)
   // console.log("Journeys data:", journeys)
 
-  /*
-filterFn: (row, columnId, filterValue) => {
-        const journeyTimeStamp = new Date(row.getValue(columnId))
-        const { startDate, endDate } = filterValue || {}
-
-        if (startDate) {
-          const startDateTime = new Date(startDate)
-          startDateTime.setHours(0, 0, 0, 0) // Set time to 00:00:00
-          if (journeyTimeStamp < startDateTime) {
-            return false
-          }
-        }
-
-        if (endDate) {
-          const endDateTime = new Date(endDate)
-          endDateTime.setHours(23, 59, 59, 999) // Set time to 23:59:59
-          if (journeyTimeStamp > endDateTime) {
-            return false
-          }
-        }
-
-        return true
-      },
-  */
-
   const columns: ColumnDef<Journey>[] = [
     {
       accessorKey: "id",
@@ -253,22 +228,7 @@ filterFn: (row, columnId, filterValue) => {
         <div className="capitalize">{row.original.route.routeName}</div>
       ),
     },
-    {
-      id: "journey.application.deviceId",
-      accessorFn: (row) => row.application.deviceId,
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          ID устройства
-          <ArrowUpDown />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="capitalize">{row.original.application.deviceId}</div>
-      ),
-    },
+
     {
       accessorKey: "organization",
       header: ({ column }) => (
@@ -598,3 +558,22 @@ filterFn: (row, columnId, filterValue) => {
     </div>
   )
 }
+
+/*
+{
+      id: "journey.application.deviceId",
+      accessorFn: (row) => row.application.deviceId,
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          ID устройства
+          <ArrowUpDown />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="capitalize">{row.original.application.deviceId}</div>
+      ),
+    },
+*/

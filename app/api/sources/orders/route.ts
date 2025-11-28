@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
   const bbusApiKey = process.env.BBUS_API_KEY
   const bbusApiKeyPublic = process.env.NEXT_PUBLIC_BBUS_API_KEY
   const systemUserId = process.env.SYSTEM_USER_ID || ""
+  const systemRouteId = process.env.DEFAULT_ROUTE_ID || ""
 
   const { apiKey, orderData } = await req.json()
   const {
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
 
     // Step 5: Patch the bus record using updateBus
     const updatedBusData = {
-      routeId: route.id,
+      routeId: systemRouteId, // Default routeId field is used when no time slots are found
       organizationId: organization.id,
     }
 

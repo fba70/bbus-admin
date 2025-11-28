@@ -16,7 +16,7 @@ import {
 import { eq, inArray } from "drizzle-orm"
 import { createLog, LogInput } from "./logs"
 
-type JourneyWithoutOrganization = Omit<Journey, "route"> & {
+export type JourneyWithoutOrganization = Omit<Journey, "route"> & {
   route: Omit<Route, "organization">
 }
 

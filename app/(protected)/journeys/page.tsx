@@ -46,6 +46,7 @@ export default function Journeys() {
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
 
+  const [dateFilter, setDateFilter] = useState(getCurrentMonthRange())
   const [journeys, setJourneys] = useState<Journey[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -61,10 +62,52 @@ export default function Journeys() {
     unauthorized()
   }
 
+  // Helper to get current month start/end
+  function getCurrentMonthRange() {
+    const now = new Date()
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    return {
+      startDate: startDate.toISOString().slice(0, 10),
+      endDate: endDate.toISOString().slice(0, 10),
+    }
+  }
+
   useEffect(() => {
     fetchJourneys()
   }, [user])
 
+  async function fetchJourneys(startDate?: string, endDate?: string) {
+    try {
+      setLoading(true)
+      setError(null)
+
+      if (!user || !user.user.id) {
+        throw new Error("User is not authenticated.")
+      }
+
+      const params: Record<string, string> = { sessionUserId: user.user.id }
+      if (startDate) params.startDate = startDate
+      if (endDate) params.endDate = endDate
+
+      const response = await axios.get(`${baseUrl}/api/journeys`, {
+        params,
+      })
+
+      const data: Journey[] = response.data
+      setJourneys(data)
+      toast.success("Journeys fetched successfully.")
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred."
+      )
+      toast.error(`Error fetching journeys data: ${error}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  /*
   async function fetchJourneys() {
     try {
       setLoading(true)
@@ -90,6 +133,7 @@ export default function Journeys() {
       setLoading(false)
     }
   }
+  */
 
   // console.log(Intl.DateTimeFormat().resolvedOptions().locale)
   // console.log("Journeys data:", journeys)
@@ -373,61 +417,38 @@ export default function Journeys() {
           className=""
         />
       </div>
+
       <div className="w-[95%] flex flex-row items-center justify-between ">
         <div className="flex flex-row items-center gap-2">
           <Input
             type="date"
             placeholder="Start Date"
-            value={
-              (
-                table.getColumn("journeyTimeStamp")?.getFilterValue() as {
-                  startDate?: string
-                  endDate?: string
-                }
-              )?.startDate || ""
-            }
+            value={dateFilter.startDate}
             onChange={(event) => {
-              const newStartDate = event.target.value
-              table
-                .getColumn("journeyTimeStamp")
-                ?.setFilterValue(
-                  (prev: JourneyTimeStampFilter | undefined) => ({
-                    ...(prev || {}),
-                    startDate: newStartDate,
-                  })
-                )
+              setDateFilter((prev) => ({
+                ...prev,
+                startDate: event.target.value,
+              }))
             }}
           />
           <Input
             type="date"
             placeholder="End Date"
-            value={
-              (
-                table.getColumn("journeyTimeStamp")?.getFilterValue() as {
-                  startDate?: string
-                  endDate?: string
-                }
-              )?.endDate || ""
-            }
+            value={dateFilter.endDate}
             onChange={(event) => {
-              const newEndDate = event.target.value
-              table
-                .getColumn("journeyTimeStamp")
-                ?.setFilterValue(
-                  (prev: JourneyTimeStampFilter | undefined) => ({
-                    ...(prev || {}),
-                    endDate: newEndDate,
-                  })
-                )
+              setDateFilter((prev) => ({
+                ...prev,
+                endDate: event.target.value,
+              }))
             }}
           />
           <Button
             variant="outline"
             onClick={() => {
-              table.getColumn("journeyTimeStamp")?.setFilterValue(undefined)
+              fetchJourneys(dateFilter.startDate, dateFilter.endDate)
             }}
           >
-            Сбросить фильтр
+            Обновить данные
           </Button>
         </div>
 
@@ -576,4 +597,63 @@ export default function Journeys() {
         <div className="capitalize">{row.original.application.deviceId}</div>
       ),
     },
+*/
+
+/*
+<div className="flex flex-row items-center gap-2">
+          <Input
+            type="date"
+            placeholder="Start Date"
+            value={
+              (
+                table.getColumn("journeyTimeStamp")?.getFilterValue() as {
+                  startDate?: string
+                  endDate?: string
+                }
+              )?.startDate || ""
+            }
+            onChange={(event) => {
+              const newStartDate = event.target.value
+              table
+                .getColumn("journeyTimeStamp")
+                ?.setFilterValue(
+                  (prev: JourneyTimeStampFilter | undefined) => ({
+                    ...(prev || {}),
+                    startDate: newStartDate,
+                  })
+                )
+            }}
+          />
+          <Input
+            type="date"
+            placeholder="End Date"
+            value={
+              (
+                table.getColumn("journeyTimeStamp")?.getFilterValue() as {
+                  startDate?: string
+                  endDate?: string
+                }
+              )?.endDate || ""
+            }
+            onChange={(event) => {
+              const newEndDate = event.target.value
+              table
+                .getColumn("journeyTimeStamp")
+                ?.setFilterValue(
+                  (prev: JourneyTimeStampFilter | undefined) => ({
+                    ...(prev || {}),
+                    endDate: newEndDate,
+                  })
+                )
+            }}
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              table.getColumn("journeyTimeStamp")?.setFilterValue(undefined)
+            }}
+          >
+            Сбросить фильтр
+          </Button>
+        </div>
 */

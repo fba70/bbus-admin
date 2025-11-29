@@ -2,6 +2,41 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "@/lib/get-session"
 import { getJourneys, createJourney, updateJourney } from "@/server/journeys"
 
+export async function GET(req: NextRequest) {
+  const session = await getServerSession()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(req.url)
+  const sessionUserId = searchParams.get("sessionUserId")
+  const id = searchParams.get("id")
+  const startDate = searchParams.get("startDate")
+  const endDate = searchParams.get("endDate")
+
+  if (!sessionUserId) {
+    return NextResponse.json(
+      { error: "Missing sessionUserId" },
+      { status: 400 }
+    )
+  }
+
+  try {
+    const journeys = await getJourneys(
+      sessionUserId,
+      id || undefined,
+      startDate || undefined,
+      endDate || undefined
+    )
+    return NextResponse.json(journeys)
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+/*
 // GET method
 export async function GET(req: NextRequest) {
   const session = await getServerSession()
@@ -29,6 +64,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
+  */
 
 // POST method
 export async function POST(req: NextRequest) {

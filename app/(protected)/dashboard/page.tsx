@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ChartConfig, ChartContainer } from "@/components/ui/chart"
-import { Journey } from "@/db/schema"
 import { unauthorized } from "next/navigation"
 import Loading from "@/app/loading"
 import {
@@ -46,7 +45,6 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState({
     accessCards: 0,
-    applications: 0,
     buses: 0,
     routes: 0,
     journeys: 0,
@@ -57,7 +55,8 @@ export default function DashboardPage() {
   const firstMonth = new Date(2025, 10, 1) // November 2025
   const now = new Date()
   // Calculate how many months to show: from November 2025 up to now, max 12
-  const monthsSinceFirst = (now.getFullYear() - 2025) * 12 + (now.getMonth() - 10)
+  const monthsSinceFirst =
+    (now.getFullYear() - 2025) * 12 + (now.getMonth() - 10)
   const monthsToShow = Math.min(Math.max(monthsSinceFirst + 1, 1), 12)
   const monthOptions = Array.from({ length: monthsToShow }, (_, i) => {
     const date = new Date(2025, 10, 1)
@@ -100,16 +99,12 @@ export default function DashboardPage() {
       // Fetch total counts for each API using axios
       const [
         accessCardsRes,
-        applicationsRes,
         busesRes,
         routesRes,
         organizationsRes,
         journeysRes,
       ] = await Promise.all([
         axios.get(`${baseUrl}/api/access-cards`, {
-          params: { userId: user.user.id },
-        }),
-        axios.get(`${baseUrl}/api/applications`, {
           params: { userId: user.user.id },
         }),
         axios.get(`${baseUrl}/api/buses`, {
@@ -129,7 +124,6 @@ export default function DashboardPage() {
       // Update state with total counts
       setStats({
         accessCards: accessCardsRes.data.length,
-        applications: applicationsRes.data.length,
         buses: busesRes.data.length,
         routes: routesRes.data.length,
         organizations: organizationsRes.data.length,
@@ -203,16 +197,6 @@ export default function DashboardPage() {
           <CardContent>
             <p className="text-4xl font-semibold text-center">
               {stats.accessCards}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="w-[160px]">
-          <CardHeader>
-            <CardTitle className="text-center">Приложений</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-semibold text-center">
-              {stats.applications}
             </p>
           </CardContent>
         </Card>

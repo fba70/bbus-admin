@@ -163,6 +163,7 @@ export default function Journeys() {
             day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
+            hour12: false,
           }).format(new Date(row.getValue("journeyTimeStamp")))}
         </div>
       ),

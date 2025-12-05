@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { updateBusDictionary } from "@/server/orders"
-import { getBusesDictionary } from "@/server/buses"
+import { getBusesDictionary, getBuses } from "@/server/buses"
 
 // POST method
 export async function POST(req: NextRequest) {
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const key = searchParams.get("key")
+  const stateNumber = searchParams.get("stateNumber")
 
   const userId = process.env.SYSTEM_USER_ID || ""
   const bbusApiKey = process.env.BBUS_API_KEY
@@ -71,7 +72,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const buses = await getBusesDictionary(userId)
+    let buses
+    if (stateNumber) {
+      buses = await getBuses(userId, undefined, stateNumber)
+    } else {
+      buses = await getBusesDictionary(userId)
+    }
     return NextResponse.json(buses)
   } catch (error) {
     const message =

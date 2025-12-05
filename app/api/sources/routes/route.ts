@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { updateRouteDictionary } from "@/server/orders"
 import { getOrganizations } from "@/server/clients"
-import { getRoutesDictionary } from "@/server/routes"
+import { getRoutesDictionary, getRoutes } from "@/server/routes"
 
 interface Route {
   organizationId: string
@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const key = searchParams.get("key")
+  const orderRouteId1c = searchParams.get("orderRouteId1c")
 
   const userId = process.env.SYSTEM_USER_ID || ""
   const bbusApiKey = process.env.BBUS_API_KEY
@@ -129,7 +130,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const routes = await getRoutesDictionary(userId)
+    let routes
+    if (orderRouteId1c) {
+      routes = await getRoutes(userId, undefined, orderRouteId1c)
+    } else {
+      routes = await getRoutesDictionary(userId)
+    }
     return NextResponse.json(routes)
   } catch (error) {
     const message =

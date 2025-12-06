@@ -111,6 +111,7 @@ export default function DashboardPage() {
       }
 
       // Fetch total counts for each API using axios
+      /*
       const [
         accessCardsRes,
         busesRes,
@@ -134,14 +135,25 @@ export default function DashboardPage() {
           params: { sessionUserId: user.user.id },
         }),
       ])
+        */
+
+      const fetchedStats = await axios.get(`${baseUrl}/api/stats`, {
+        params: { userId: user.user.id },
+      })
+
+      console.log("Fetched stats:", fetchedStats.data)
+
+      const journeysRes = await axios.get(`${baseUrl}/api/journeys`, {
+        params: { sessionUserId: user.user.id },
+      })
 
       // Update state with total counts
       setStats({
-        accessCards: accessCardsRes.data.length,
-        buses: busesRes.data.length,
-        routes: routesRes.data.length,
-        organizations: organizationsRes.data.length,
-        journeys: journeysRes.data.length,
+        accessCards: fetchedStats.data.accessCards,
+        buses: fetchedStats.data.buses,
+        routes: fetchedStats.data.routes,
+        organizations: fetchedStats.data.organizations,
+        journeys: fetchedStats.data.journeys,
       })
 
       // console.log("Routes", routesRes.data)
@@ -193,7 +205,7 @@ export default function DashboardPage() {
 
       <h2 className="text-xl font-bold mt-6 mb-4">Общая статистика</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="w-[160px]">
           <CardHeader>
             <CardTitle className="text-center">Клиентов</CardTitle>

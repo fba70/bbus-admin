@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "@/lib/get-session"
 import {
   getAccessCards,
+  getAccessCardsByCardId,
   createAccessCard,
   updateAccessCard,
   deleteAccessCards,
+  getAccessCardsByOrganizationId,
 } from "@/server/access-cards"
 
 // GET method
@@ -16,14 +18,22 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const userId = searchParams.get("userId")
-  const id = searchParams.get("id")
+  const cardId = searchParams.get("id")
+  const organizationId = searchParams.get("organizationId")
 
   if (!userId) {
     return NextResponse.json({ error: "Missing userId" }, { status: 400 })
   }
 
   try {
-    const cards = await getAccessCards(userId, id || undefined)
+    let cards
+    if (cardId) {
+      cards = await getAccessCardsByCardId(userId, cardId)
+    } else if (organizationId) {
+      cards = await getAccessCardsByOrganizationId(userId, organizationId)
+    } else {
+      cards = await getAccessCards(userId, undefined)
+    }
     return NextResponse.json(cards)
   } catch (error) {
     const message =

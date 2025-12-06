@@ -33,12 +33,30 @@ export async function getAccessCards(
       with: {
         organization: true, // Include organization data
       },
-      limit: 1000,
+      limit: 500,
     })
 
     console.log("Fetched cards:", allAccessCards)
     return allAccessCards as AccessCard[]
   }
+}
+
+// GET action
+export async function getAccessCardsByCardId(
+  userId: string,
+  cardId: string
+): Promise<AccessCard[]> {
+  // Fetch a specific access card by access card ID
+  const record = await db.query.accessCard.findFirst({
+    where: eq(accessCard.cardId, cardId),
+  })
+
+  if (!record) {
+    throw new Error(`Access card with ID ${cardId} not found.`)
+  }
+
+  // console.log("Fetched access card by ID:", record)
+  return [record as AccessCard]
 }
 
 // GET action - Fetch access cards by counterpartyInn (taxId)
@@ -63,6 +81,7 @@ export async function getAccessCardsByTaxId(
 
   // Step 3: Fetch access cards belonging to the organization
   let accessCards
+
   if (cardId) {
     accessCards = await db.query.accessCard.findMany({
       where: and(
@@ -73,6 +92,26 @@ export async function getAccessCardsByTaxId(
   } else {
     accessCards = await db.query.accessCard.findMany({
       where: eq(accessCard.organizationId, organization.id),
+    })
+  }
+
+  return accessCards as AccessCard[]
+}
+
+// GET action - Fetch access cards by counterpartyInn (taxId)
+export async function getAccessCardsByOrganizationId(
+  userId: string,
+  organizationId: string
+): Promise<AccessCard[]> {
+  let accessCards
+
+  if (organizationId) {
+    accessCards = await db.query.accessCard.findMany({
+      where: eq(accessCard.organizationId, organizationId),
+    })
+  } else {
+    accessCards = await db.query.accessCard.findMany({
+      where: eq(accessCard.organizationId, organizationId),
     })
   }
 

@@ -44,7 +44,8 @@ export async function getAccessCards(
 // GET action - Fetch access cards by counterpartyInn (taxId)
 export async function getAccessCardsByTaxId(
   userId: string,
-  counterpartyInn: string
+  counterpartyInn: string,
+  cardId?: string
 ): Promise<AccessCard[]> {
   // Step 1: Fetch all organizations directly
   const allOrganizations = await db.query.organization.findMany()
@@ -61,9 +62,19 @@ export async function getAccessCardsByTaxId(
   }
 
   // Step 3: Fetch access cards belonging to the organization
-  const accessCards = await db.query.accessCard.findMany({
-    where: eq(accessCard.organizationId, organization.id),
-  })
+  let accessCards
+  if (cardId) {
+    accessCards = await db.query.accessCard.findMany({
+      where: and(
+        eq(accessCard.organizationId, organization.id),
+        eq(accessCard.cardId, cardId)
+      ),
+    })
+  } else {
+    accessCards = await db.query.accessCard.findMany({
+      where: eq(accessCard.organizationId, organization.id),
+    })
+  }
 
   return accessCards as AccessCard[]
 }

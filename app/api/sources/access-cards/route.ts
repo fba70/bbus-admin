@@ -53,7 +53,8 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const key = searchParams.get("key")
-  const counterpartyInn = searchParams.get("counterpartyInn") // New param
+  const counterpartyInn = searchParams.get("counterpartyInn")
+  const cardId = searchParams.get("cardId") // New param
 
   const userId = process.env.SYSTEM_USER_ID || ""
   const bbusApiKey = process.env.BBUS_API_KEY
@@ -66,8 +67,12 @@ export async function GET(req: NextRequest) {
   try {
     let cards
     if (counterpartyInn) {
-      // Fetch filtered access cards by taxId
-      cards = await getAccessCardsByTaxId(userId, counterpartyInn)
+      // Fetch filtered access cards by taxId and optionally cardId
+      cards = await getAccessCardsByTaxId(
+        userId,
+        counterpartyInn,
+        cardId || undefined
+      )
     } else {
       // Fallback to fetching all access cards
       cards = await getAccessCards(userId)

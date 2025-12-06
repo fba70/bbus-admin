@@ -27,7 +27,6 @@ import { z } from "zod"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
-import Link from "next/link"
 import { authClient } from "@/lib/auth-client"
 import { useRouter, useSearchParams } from "next/navigation"
 

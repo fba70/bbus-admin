@@ -4,6 +4,7 @@ import {
   getAccessCardsByTaxId,
   loadAccessCards,
 } from "@/server/access-cards"
+import { deleteAccessCardsByCardId } from "@/server/access-cards"
 
 // POST method
 export async function POST(req: NextRequest) {
@@ -72,6 +73,40 @@ export async function GET(req: NextRequest) {
       cards = await getAccessCards(userId)
     }
     return NextResponse.json(cards)
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+// DELETE method
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const key = searchParams.get("key")
+
+    const bbusApiKey = process.env.BBUS_API_KEY
+    const bbusApiKeyPublic = process.env.NEXT_PUBLIC_BBUS_API_KEY
+
+    const userId = process.env.SYSTEM_USER_ID || ""
+
+    if (!key || (key !== bbusApiKey && key !== bbusApiKeyPublic)) {
+      return NextResponse.json({ error: "API key is missing" }, { status: 400 })
+    }
+
+    const body = await req.json()
+    const { ids } = body // ids: string[]
+
+    if (!userId || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "userId and ids are required" },
+        { status: 400 }
+      )
+    }
+
+    const result = await deleteAccessCardsByCardId(userId, ids)
+    return NextResponse.json(result)
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred"

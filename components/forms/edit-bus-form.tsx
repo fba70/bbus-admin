@@ -68,6 +68,8 @@ export function EditBusForm({
     fetchRoutes()
   }, [userId, baseUrl])
 
+  console.log("Available routes:", routes)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -153,7 +155,11 @@ export function EditBusForm({
                 <FormItem>
                   <FormLabel>Маршрут автобуса</FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={routes.length === 0}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Выберите маршрут" />
                       </SelectTrigger>

@@ -43,6 +43,8 @@ export default function DashboardPage() {
   })
   const [loading, setLoading] = useState(true)
 
+  const [hasFetchedInitial, setHasFetchedInitial] = useState(false)
+
   const [stats, setStats] = useState({
     accessCards: 0,
     buses: 0,
@@ -52,7 +54,7 @@ export default function DashboardPage() {
   })
 
   // Generate month options starting from November 2025
-  const firstMonth = new Date(2025, 10, 1) // November 2025
+  const firstMonth = new Date(2025, 11, 1) // November 2025
   const now = new Date()
   // Calculate how many months to show: from November 2025 up to now, max 12
   const monthsSinceFirst =
@@ -75,12 +77,24 @@ export default function DashboardPage() {
     setChartData(preparedChartData)
   }
 
+  /*
   useEffect(() => {
     const [year, month] = selectedMonth.split("-").map(Number)
     const startTime = new Date(year, month - 1, 1).toISOString()
     const endTime = new Date(year, month, 0).toISOString() // Last day of month
     fetchJourneys(startTime, endTime)
   }, [selectedMonth])
+*/
+
+  useEffect(() => {
+    if (user && !loading && !hasFetchedInitial) {
+      const [year, month] = selectedMonth.split("-").map(Number)
+      const startTime = new Date(year, month - 1, 1).toISOString()
+      const endTime = new Date(year, month, 0).toISOString()
+      fetchJourneys(startTime, endTime)
+      setHasFetchedInitial(true)
+    }
+  }, [user, loading, selectedMonth, hasFetchedInitial])
 
   useEffect(() => {
     if (user && user.user.id) {

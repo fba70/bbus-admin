@@ -106,9 +106,57 @@ export const getUsers = async (organizationId: string) => {
   }
 }
 
+export const getUsersNotInOrganization = async (organizationId: string) => {
+  try {
+    const members = await db.query.member.findMany({
+      where: not(eq(member.organizationId, organizationId)),
+    })
+
+    // console.log("Members:", members)
+
+    // Fetch users whose IDs are in the list of member.userId
+    const users = await db.query.user.findMany({
+      where: inArray(
+        user.id,
+        members.map((member) => member.userId)
+      ),
+    })
+
+    // console.log("Users:", users)
+
+    return users
+  } catch (error) {
+    console.error(error)
+    return []
+  }
+}
+
+/*
 export const getAllUsers = async () => {
   try {
     const users = await db.query.user.findMany()
+    return users
+  } catch (error) {
+    console.error("Error fetching all users:", error)
+    return []
+  }
+}
+*/
+
+export const getAllNonMemberUsers = async () => {
+  try {
+    // Step 1: Get all member records
+    const members = await db.query.member.findMany()
+    const memberUserIds = members.map((m) => m.userId)
+
+    // Step 2: Fetch users whose IDs are NOT in memberUserIds
+    const users = await db.query.user.findMany({
+      where:
+        memberUserIds.length > 0
+          ? not(inArray(user.id, memberUserIds))
+          : undefined,
+    })
+
     return users
   } catch (error) {
     console.error("Error fetching all users:", error)

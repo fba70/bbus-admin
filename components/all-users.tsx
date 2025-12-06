@@ -7,51 +7,58 @@ import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { addMember } from "@/server/members"
 
 interface AllUsersProps {
   users: User[]
   organizationId: string
+  onUserAdded?: () => void
 }
 
-export default function AllUsers({ users, organizationId }: AllUsersProps) {
+export default function AllUsers({
+  users,
+  organizationId,
+  onUserAdded,
+}: AllUsersProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null)
   const router = useRouter()
 
   const handleInviteMember = async (user: User) => {
     try {
       setIsLoading(true)
-      const { error } = await authClient.organization.inviteMember({
-        email: user.email,
-        role: "member",
-        organizationId: organizationId,
-      })
-
-      if (error) {
-        toast.error(error.message)
-        return
-      }
+      setLoadingUserId(user.id)
+      await addMember(organizationId, user.id, "driver")
 
       setIsLoading(false)
-      toast.success("Invitation sent to member")
+      toast.success("User added to the organization successfully")
+      if (onUserAdded) onUserAdded()
       router.refresh()
     } catch (error) {
-      toast.error("Failed to invite member to organization")
+      toast.error("Failed to add user to the organization")
       console.error(error)
     } finally {
       setIsLoading(false)
+      setLoadingUserId(null)
     }
   }
 
   return (
     <div>
+      {users.length === 0 && !isLoading && (
+        <p className="text-center mt-2">
+          Нет новых пользователей для добавления в организацию.
+        </p>
+      )}
       <div className="flex flex-col gap-2">
         {users.map((user) => (
           <div key={user.id}>
             <Button
               onClick={() => handleInviteMember(user)}
-              disabled={isLoading}
+              disabled={loadingUserId === user.id}
+              className="w-[500px]"
             >
-              {isLoading ? (
+              {loadingUserId === user.id ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 `Добавить пользователя " ${user.name} " в организацию`
@@ -63,3 +70,11 @@ export default function AllUsers({ users, organizationId }: AllUsersProps) {
     </div>
   )
 }
+
+/*
+const { error } = await authClient.organization.inviteMember({
+        email: user.email,
+        role: "member",
+        organizationId: organizationId,
+      })
+*/

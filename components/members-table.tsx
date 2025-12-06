@@ -158,7 +158,7 @@ export default function MembersTable({ slug }: MembersTableProps) {
               memberId={row.original.id}
               currentRole={row.original.role}
             />
-            <ResetPasswordDialogForm />
+
             <EditUserForm
               userId={row.original.user.id}
               name={row.original.user.name}
@@ -172,6 +172,8 @@ export default function MembersTable({ slug }: MembersTableProps) {
       },
     },
   ]
+
+  // <ResetPasswordDialogForm />
 
   const table = useReactTable({
     data: members || [],

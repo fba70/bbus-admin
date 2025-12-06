@@ -24,39 +24,19 @@ export async function getAccessCards(
       throw new Error(`Access card with ID ${id} not found.`)
     }
 
-    /*
-    const logData: LogInput = {
-      userId: userId,
-      applicationId: null,
-      logActionType: "GET",
-      timeStamp: new Date(),
-      metadata: "Fetched access card with ID " + id,
-    }
-    await createLog(userId, logData)
-    */
-
     // console.log("Fetched access card by ID:", record)
     return [record as AccessCard]
   } else {
     // Fetch all access cards
+    // console.log("Fetching all access cards...")
     const allAccessCards = await db.query.accessCard.findMany({
       with: {
         organization: true, // Include organization data
       },
+      limit: 1000,
     })
 
-    /*
-    const logData: LogInput = {
-      userId: userId,
-      applicationId: null,
-      logActionType: "GET",
-      timeStamp: new Date(),
-      metadata: "Fetched all access cards",
-    }
-    await createLog(userId, logData)
-    */
-
-    // console.log("Fetched all access cards:", allAccessCards)
+    console.log("Fetched cards:", allAccessCards)
     return allAccessCards as AccessCard[]
   }
 }
@@ -282,6 +262,48 @@ export async function deleteAccessCards(
   // Step 4: Return summary
   return {
     deletedCount: existingIds.length,
+    notFoundIds,
+  }
+}
+
+// DELETE action (bulk delete by IDs)
+export async function deleteAccessCardsByCardId(
+  userId: string,
+  cardIds: string[]
+): Promise<{ deletedCount: number; notFoundIds: string[] }> {
+  if (!cardIds || cardIds.length === 0) {
+    throw new Error("No cardIds provided for deletion.")
+  }
+
+  // Step 1: Check which cardIds exist in the database
+  const existingRecords = await db
+    .select({ cardId: accessCard.cardId })
+    .from(accessCard)
+    .where(inArray(accessCard.cardId, cardIds))
+
+  const existingCardIds = existingRecords.map((record) => record.cardId)
+  const notFoundIds = cardIds.filter((id) => !existingCardIds.includes(id))
+
+  if (existingCardIds.length === 0) {
+    throw new Error("No access cards found with the provided cardIds.")
+  }
+
+  // Step 2: Delete the existing records by cardId
+  await db.delete(accessCard).where(inArray(accessCard.cardId, existingCardIds))
+
+  // Step 3: Log the deletion
+  const logData: LogInput = {
+    userId: userId,
+    applicationId: null,
+    logActionType: "UPDATE", // Or "DELETE" if you have it
+    timeStamp: new Date(),
+    metadata: `Deleted ${existingCardIds.length} access card(s) with cardIds: ${existingCardIds.join(", ")}`,
+  }
+  await createLog(userId, logData)
+
+  // Step 4: Return summary
+  return {
+    deletedCount: existingCardIds.length,
     notFoundIds,
   }
 }

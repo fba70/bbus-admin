@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { getAllUsers } from "@/server/users"
+import { getAllNonMemberUsers } from "@/server/users"
 import { addMember } from "@/server/members"
 
 interface AllUsersProps {
@@ -27,7 +27,7 @@ export default function AddUsersToOrganization({
 
   const fetchUsers = async () => {
     try {
-      const allUsers = await getAllUsers()
+      const allUsers = await getAllNonMemberUsers()
       setAllUsers(allUsers)
     } catch (error) {
       console.error("Error fetching users:", error)
@@ -36,6 +36,8 @@ export default function AddUsersToOrganization({
       setIsLoadingUsers(false)
     }
   }
+
+  console.log("All Users:", allUsers)
 
   useEffect(() => {
     fetchUsers()

@@ -9,8 +9,13 @@ export function Logout() {
   const router = useRouter()
 
   const handleLogout = async () => {
-    await authClient.signOut()
-    router.push("/")
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/login")
+        },
+      },
+    })
   }
 
   return (

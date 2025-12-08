@@ -17,7 +17,6 @@ import {
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Table,
   TableBody,
@@ -51,8 +50,8 @@ export default function Orders() {
   const [pageSize, setPageSize] = React.useState(20) // Default items per page
   const [pageIndex, setPageIndex] = React.useState(0) // Default page index
 
-  const [showFileUploadDialog, setShowFileUploadDialog] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  // const [showFileUploadDialog, setShowFileUploadDialog] = useState(false)
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const { data: user, isPending } = authClient.useSession()
 

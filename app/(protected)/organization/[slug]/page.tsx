@@ -8,6 +8,7 @@ import { getOrganizationBySlug } from "@/server/organizations"
 import { getAllNonMemberUsers } from "@/server/users"
 import { unauthorized } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
+import { User, Organization } from "@/db/schema"
 
 export default function OrganizationPage({
   params,
@@ -17,8 +18,8 @@ export default function OrganizationPage({
   const { slug } = React.use(params)
 
   const [membersRefreshKey, setMembersRefreshKey] = useState(0)
-  const [organization, setOrganization] = useState<any>(null)
-  const [allUsers, setAllUsers] = useState<any[]>([])
+  const [organization, setOrganization] = useState<Organization | null>(null)
+  const [allUsers, setAllUsers] = useState<User[]>([])
 
   const { data: user, isPending } = authClient.useSession()
 
@@ -29,7 +30,7 @@ export default function OrganizationPage({
   useEffect(() => {
     async function fetchData() {
       const org = await getOrganizationBySlug(slug)
-      setOrganization(org)
+      setOrganization(org as Organization)
       const users = await getAllNonMemberUsers()
       setAllUsers(users)
     }

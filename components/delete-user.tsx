@@ -1,36 +1,32 @@
 "use client"
 
-import { removeMember } from "@/server/members"
+import { deleteUserFromDB } from "@/server/delete-user"
 import { Button } from "./ui/button"
 import { useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { Loader2, UserMinus } from "lucide-react"
+import { Loader2, Trash } from "lucide-react"
 
-export default function RemoveFromOrganization({
-  memberId,
-}: {
-  memberId: string
-}) {
+export default function DeleteUser({ userId }: { userId: string }) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleRemoveMember = async () => {
     try {
       setIsLoading(true)
-      const { success, error } = await removeMember(memberId)
+      const { success, error } = await deleteUserFromDB(userId)
 
       if (!success) {
-        toast.error(error || "Failed to remove member")
+        toast.error(error || "Failed to remove user")
         return
       }
 
       setIsLoading(false)
-      toast.success("Member removed from organization")
+      toast.success("User removed from database")
       router.refresh()
     } catch (error) {
       console.error(error)
-      toast.error("Failed to remove member from organization")
+      toast.error("Failed to remove user from database")
     } finally {
       setIsLoading(false)
     }
@@ -40,14 +36,10 @@ export default function RemoveFromOrganization({
     <div className="flex gap-2 items-center justify-end">
       <Button
         onClick={handleRemoveMember}
-        variant="default"
+        variant="destructive"
         disabled={isLoading}
       >
-        {isLoading ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <UserMinus />
-        )}
+        {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Trash />}
       </Button>
     </div>
   )

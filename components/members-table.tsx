@@ -32,6 +32,7 @@ import { ChangeRoleForm } from "@/components/forms/change-role-form"
 import RemoveFromOrganization from "./members-table-action"
 import { EditUserForm } from "./forms/edit-user-form"
 import { getOrganizationBySlug } from "@/server/organizations"
+import DeleteUser from "./delete-user"
 // import { ResetPasswordDialogForm } from "@/components/forms/reset-password-dialog-form"
 
 interface MembersTableProps {
@@ -167,6 +168,7 @@ export default function MembersTable({ slug }: MembersTableProps) {
               onUserUpdated={fetchMembers}
             />
             <RemoveFromOrganization memberId={row.original.id} />
+            <DeleteUser userId={row.original.user.id} />
           </div>
         )
       },

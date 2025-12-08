@@ -5,7 +5,6 @@ import {
   Route,
   Bus,
   IdCardLanyard,
-  Smartphone,
   Home,
   MapPinned,
   Settings,
@@ -138,13 +137,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter className="mt-auto mb-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <ModeSwitcher className="flex items-center justify-start" />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <a
@@ -173,6 +168,11 @@ export function AppSidebar() {
                 <Settings size={24} className="mr-2" />
                 <span className="text-lg">Настройки</span>
               </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <ModeSwitcher className="flex items-center justify-start" />
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

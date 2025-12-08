@@ -6,8 +6,8 @@ import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth-client"
 import { addMember } from "@/server/members"
+// import { authClient } from "@/lib/auth-client"
 
 interface AllUsersProps {
   users: User[]

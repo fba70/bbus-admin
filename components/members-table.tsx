@@ -33,10 +33,11 @@ import RemoveFromOrganization from "./members-table-action"
 import { EditUserForm } from "./forms/edit-user-form"
 import { getOrganizationBySlug } from "@/server/organizations"
 import DeleteUser from "./delete-user"
+import Loading from "@/app/loading"
 // import { ResetPasswordDialogForm } from "@/components/forms/reset-password-dialog-form"
 
 interface MembersTableProps {
-  slug: string // New prop
+  slug: string
 }
 
 export default function MembersTable({ slug }: MembersTableProps) {
@@ -159,16 +160,21 @@ export default function MembersTable({ slug }: MembersTableProps) {
               memberId={row.original.id}
               currentRole={row.original.role}
             />
-
             <EditUserForm
               userId={row.original.user.id}
               name={row.original.user.name}
               email={row.original.user.email}
               emailVerified={row.original.user.emailVerified}
-              onUserUpdated={fetchMembers}
+              onUserUpdated={fetchMembers} // Use the callback
             />
-            <RemoveFromOrganization memberId={row.original.id} />
-            <DeleteUser userId={row.original.user.id} />
+            <RemoveFromOrganization
+              memberId={row.original.id}
+              onUserUpdated={fetchMembers} // Use the callback
+            />
+            <DeleteUser
+              userId={row.original.user.id}
+              onUserUpdated={fetchMembers} // Use the callback
+            />
           </div>
         )
       },
@@ -199,6 +205,10 @@ export default function MembersTable({ slug }: MembersTableProps) {
       },
     },
   })
+
+  if (loading) {
+    return <Loading />
+  }
 
   return (
     <div className="flex flex-col gap-2 items-center justify-start">

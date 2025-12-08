@@ -9,8 +9,10 @@ import { Loader2, UserMinus } from "lucide-react"
 
 export default function RemoveFromOrganization({
   memberId,
+  onUserUpdated,
 }: {
   memberId: string
+  onUserUpdated?: () => void
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -27,6 +29,7 @@ export default function RemoveFromOrganization({
 
       setIsLoading(false)
       toast.success("Member removed from organization")
+      onUserUpdated?.()
       router.refresh()
     } catch (error) {
       console.error(error)

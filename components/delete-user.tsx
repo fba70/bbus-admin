@@ -7,7 +7,13 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Loader2, Trash } from "lucide-react"
 
-export default function DeleteUser({ userId }: { userId: string }) {
+export default function DeleteUser({
+  userId,
+  onUserUpdated,
+}: {
+  userId: string
+  onUserUpdated?: () => void
+}) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -23,6 +29,7 @@ export default function DeleteUser({ userId }: { userId: string }) {
 
       setIsLoading(false)
       toast.success("User removed from database")
+      onUserUpdated?.()
       router.refresh()
     } catch (error) {
       console.error(error)

@@ -29,10 +29,10 @@ import { authClient } from "@/lib/auth-client"
 import { unauthorized } from "next/navigation"
 import { Member } from "@/db/schema"
 import { ChangeRoleForm } from "@/components/forms/change-role-form"
-import MembersTableAction from "./members-table-action"
-import { ResetPasswordDialogForm } from "@/components/forms/reset-password-dialog-form"
+import RemoveFromOrganization from "./members-table-action"
 import { EditUserForm } from "./forms/edit-user-form"
 import { getOrganizationBySlug } from "@/server/organizations"
+// import { ResetPasswordDialogForm } from "@/components/forms/reset-password-dialog-form"
 
 interface MembersTableProps {
   slug: string // New prop
@@ -166,7 +166,7 @@ export default function MembersTable({ slug }: MembersTableProps) {
               emailVerified={row.original.user.emailVerified}
               onUserUpdated={fetchMembers}
             />
-            <MembersTableAction memberId={row.original.id} />
+            <RemoveFromOrganization memberId={row.original.id} />
           </div>
         )
       },

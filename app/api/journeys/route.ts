@@ -36,36 +36,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-/*
-// GET method
-export async function GET(req: NextRequest) {
-  const session = await getServerSession()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  const { searchParams } = new URL(req.url)
-  const sessionUserId = searchParams.get("sessionUserId")
-  const id = searchParams.get("id")
-
-  if (!sessionUserId) {
-    return NextResponse.json(
-      { error: "Missing sessionUserId" },
-      { status: 400 }
-    )
-  }
-
-  try {
-    const journeys = await getJourneys(sessionUserId, id || undefined)
-    return NextResponse.json(journeys)
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "An unknown error occurred"
-    return NextResponse.json({ error: message }, { status: 500 })
-  }
-}
-  */
-
 // POST method
 export async function POST(req: NextRequest) {
   const session = await getServerSession()
@@ -117,3 +87,33 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
+
+/*
+// GET method
+export async function GET(req: NextRequest) {
+  const session = await getServerSession()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(req.url)
+  const sessionUserId = searchParams.get("sessionUserId")
+  const id = searchParams.get("id")
+
+  if (!sessionUserId) {
+    return NextResponse.json(
+      { error: "Missing sessionUserId" },
+      { status: 400 }
+    )
+  }
+
+  try {
+    const journeys = await getJourneys(sessionUserId, id || undefined)
+    return NextResponse.json(journeys)
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+*/

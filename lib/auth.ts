@@ -109,6 +109,11 @@ export const auth = betterAuth({
     lastLoginMethod(),
     nextCookies(),
   ],
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
+  },
 })
 
 /*

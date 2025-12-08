@@ -3,8 +3,8 @@ import {
   getAccessCards,
   getAccessCardsByTaxId,
   loadAccessCards,
+  deleteAccessCardsByCardId,
 } from "@/server/access-cards"
-import { deleteAccessCardsByCardId } from "@/server/access-cards"
 
 // POST method
 export async function POST(req: NextRequest) {

@@ -77,53 +77,6 @@ export async function getJourneys(
   }
 }
 
-/*
-// GET action
-export async function getJourneys(
-  sessionUserId: string,
-  id?: string
-): Promise<Journey[]> {
-  if (id) {
-    // Fetch a specific journey by journeyId
-    const record = await db.query.journey.findFirst({
-      where: eq(journey.id, id),
-      with: {
-        accessCard: true,
-        bus: true,
-        route: {
-          with: {
-            organization: true, // Include organization data within the route
-          },
-        },
-        application: true,
-      },
-    })
-    if (!record) {
-      throw new Error(`Journey with ID ${id} not found.`)
-    }
-
-    return [record as Journey]
-  } else {
-    // Fetch all routes
-    const allJourneys = await db.query.journey.findMany({
-      with: {
-        accessCard: true,
-        bus: true,
-        route: {
-          with: {
-            organization: true, // Include organization data within the route
-          },
-        },
-        application: true,
-      },
-      orderBy: desc(journey.createdAt),
-    })
-
-    return allJourneys as Journey[]
-  }
-}
-  */
-
 // POST action
 export async function createJourney(
   sessionUserId: string,
@@ -152,11 +105,14 @@ export async function createJourney(
   if (journeyData.newCardId || journeyData.newCardType) {
     // Check if card already exists
     const existingCard = await db.query.accessCard.findFirst({
-      where: eq(accessCard.cardId, journeyData.newCardId!),
+      where: and(
+        eq(accessCard.cardId, journeyData.newCardId!),
+        eq(accessCard.organizationId, journeyRoute.organizationId)
+      ),
     })
 
     if (!existingCard) {
-      const newAccesscard: typeof accessCard.$inferInsert = {
+      const newAccessCard: typeof accessCard.$inferInsert = {
         id: crypto.randomUUID(),
         cardId: journeyData.newCardId!,
         nameOnCard: "",
@@ -167,12 +123,12 @@ export async function createJourney(
         updatedAt: new Date(),
       }
 
-      await db.insert(accessCard).values(newAccesscard)
+      await db.insert(accessCard).values(newAccessCard)
 
       // Update the journey record with the new accessCardId
       await db
         .update(journey)
-        .set({ accessCardId: newAccesscard.id })
+        .set({ accessCardId: newAccessCard.id })
         .where(eq(journey.id, newJourney.id))
     } else {
       // Optionally, update the journey with the existing card's ID
@@ -228,3 +184,50 @@ export async function updateJourney(
 
   return updatedJourney as Journey
 }
+
+/*
+// GET action
+export async function getJourneys(
+  sessionUserId: string,
+  id?: string
+): Promise<Journey[]> {
+  if (id) {
+    // Fetch a specific journey by journeyId
+    const record = await db.query.journey.findFirst({
+      where: eq(journey.id, id),
+      with: {
+        accessCard: true,
+        bus: true,
+        route: {
+          with: {
+            organization: true, // Include organization data within the route
+          },
+        },
+        application: true,
+      },
+    })
+    if (!record) {
+      throw new Error(`Journey with ID ${id} not found.`)
+    }
+
+    return [record as Journey]
+  } else {
+    // Fetch all routes
+    const allJourneys = await db.query.journey.findMany({
+      with: {
+        accessCard: true,
+        bus: true,
+        route: {
+          with: {
+            organization: true, // Include organization data within the route
+          },
+        },
+        application: true,
+      },
+      orderBy: desc(journey.createdAt),
+    })
+
+    return allJourneys as Journey[]
+  }
+}
+*/

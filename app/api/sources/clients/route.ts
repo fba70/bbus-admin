@@ -21,10 +21,6 @@ export async function GET(req: NextRequest) {
 
   // console.log("API key passed")
 
-  if (!taxId) {
-    return NextResponse.json({ error: "Tax ID is missing" }, { status: 400 })
-  }
-
   try {
     const organizations = await getOrganizations(
       systemUserId,

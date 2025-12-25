@@ -8,6 +8,38 @@ import { createLog, LogInput } from "./logs"
 // GET action
 export async function getOrganizations(
   userId: string,
+  id?: string
+): Promise<Organization[]> {
+  if (id) {
+    // Fetch a specific organization by orgId
+    const [record] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, id))
+    if (!record) {
+      throw new Error(`Organization with ID ${id} not found.`)
+    }
+
+    return [record as Organization]
+  } else {
+    // Fetch all organizations
+    const allOrganizations = await db.select().from(organization)
+
+    const logData: LogInput = {
+      userId: userId,
+      applicationId: null,
+      logActionType: "GET",
+      timeStamp: new Date(),
+      metadata: "Fetched all organizations",
+    }
+    await createLog(userId, logData)
+    // console.log("Fetched all organizations:", allOrganization)
+    return allOrganizations as Organization[]
+  }
+}
+
+export async function getOrganizationsExt(
+  userId: string,
   id?: string,
   taxId?: string
 ): Promise<Organization[]> {

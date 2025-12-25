@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server"
-import { getOrganizations } from "@/server/clients"
+import { getOrganizationsExt } from "@/server/clients"
 
 // GET method
 export async function GET(req: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   // console.log("API key passed")
 
   try {
-    const organizations = await getOrganizations(
+    const organizations = await getOrganizationsExt(
       systemUserId,
       undefined,
       taxId || undefined

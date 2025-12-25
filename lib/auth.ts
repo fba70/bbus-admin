@@ -12,6 +12,7 @@ import { lastLoginMethod, organization } from "better-auth/plugins"
 import { Resend } from "resend"
 import { admin, member, owner, driver } from "./auth/permissions"
 import { createLog, LogInput } from "@/server/logs"
+import { expo } from "@better-auth/expo"
 
 const resend = new Resend(process.env.RESEND_API_KEY as string)
 
@@ -108,19 +109,12 @@ export const auth = betterAuth({
     }),
     lastLoginMethod(),
     nextCookies(),
+    expo(),
   ],
   user: {
     deleteUser: {
       enabled: true,
     },
   },
+  trustedOrigins: ["http://localhost:3000", "https://bbus-admin.vercel.app"],
 })
-
-/*
-socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    },
-  },
-*/

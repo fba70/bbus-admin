@@ -117,4 +117,7 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: ["http://localhost:3000", "https://bbus-admin.vercel.app"],
+  advanced: {
+    disableOriginCheck: true,
+  },
 })
